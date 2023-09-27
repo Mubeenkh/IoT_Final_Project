@@ -1,5 +1,16 @@
+import RPi.GPIO as GPIO
+from time import sleep
+
 # Import packages
 from dash import Dash, html, Input, Output, State, callback, dcc
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+
+LED = 26
+
+GPIO.setup(LED,GPIO.OUT,initial=0)
+
 # Initialize the app
 app = Dash(__name__)
 
@@ -40,9 +51,11 @@ app.layout = html.Div([
 def update_button(n_clicks):
     bool_disabled = n_clicks % 2
     if bool_disabled:
-        return 'Turn On', switch_turn_on_style, 'Too dark', img_light_off
-    else:
+        GPIO.output(LED,1)
         return 'Turn Off', switch_turn_off_style, 'Too bright', img_light_on
+    else: 
+        GPIO.output(LED,0)
+        return 'Turn On', switch_turn_on_style, 'Too dark', img_light_off
 
 # Run the app
 if __name__ == '__main__':

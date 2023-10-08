@@ -43,7 +43,7 @@ def send_email(subject, body, sender, recipients, password):
 
     print("Message sent! Please respond within 60sec!")
 
-    sleep(30)
+    sleep(60)
 
 
 # GET the most RECENT email from recipients

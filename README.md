@@ -1,5 +1,5 @@
-## IoT_Final_Project
+# IoT_Final_Project
 
-# Libraries used
-pip install dash
-pip install Adafruit_DHT
+## Libraries used
+*pip install dash
+*pip install Adafruit_DHT

@@ -1,15 +1,19 @@
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from time import sleep
 
+import Adafruit_DHT
 # Import packages
 from dash import Dash, html, Input, Output, State, callback, dcc
 
-# GPIO.setwarnings(False)
-# GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
 
-# LED = 26
+LED = 26
+DHT_PIN = 17          
+temperature_threshold = 24
 
-# GPIO.setup(LED,GPIO.OUT,initial=0)
+GPIO.setup(LED,GPIO.OUT,initial=0)
+GPIO.setup(DHT_PIN, GPIO.IN)
 
 # Initialize the app
 
@@ -30,7 +34,7 @@ body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
 
-recipients = "extramuffin0922@gmail.com"
+recipients = "leonellalevymartel@gmail.com"
 
 
 
@@ -72,9 +76,8 @@ fan_on = 'assets/images/fan.gif'
 # }
 
 # App layout
-app.layout = html.Div( id='layout',style={},
+app.layout = html.Div(id='layout', style={},
     children=[
-        # html.Div(children='Hello World')
         html.Div([
             html.H2('IoT Project'),
             html.Div(id='column', children=[
@@ -96,8 +99,7 @@ app.layout = html.Div( id='layout',style={},
                             style={}
                         )
                     ])
-                        
-                ],id='feature-container'),
+                ], id='light-container'),
 
                 html.Div([
                     html.Div([
@@ -105,7 +107,7 @@ app.layout = html.Div( id='layout',style={},
                             src='assets/images/hot.png',
                             className="feature-img", 
                             id='fan-img',
-                            style=style_img_fan
+                            #style=style_img_fandatasheet
                         )
                     ]),
                     html.Div([
@@ -117,11 +119,9 @@ app.layout = html.Div( id='layout',style={},
                             style={}
                         )
                     ])
-                    
-                ],id='feature-container'),
+                ], id='fan-container'),
             ])
         ], id='container'),
-
     ]
 )
 
@@ -140,10 +140,10 @@ app.layout = html.Div( id='layout',style={},
 def update_button(n_clicks):
     bool_disabled = n_clicks % 2
     if bool_disabled:
-        # GPIO.output(LED,1)
+        GPIO.output(LED,1)
         return 'Turn Off', 'Too bright', img_light_on, style_img_light_on
     else: 
-        # GPIO.output(LED,0)
+        GPIO.output(LED,0)
         return 'Turn On','Too dark', img_light_off, style_img
 
 
@@ -156,12 +156,14 @@ def update_button(n_clicks):
 def control_fan(n_clicks):
     # print("dfd");
     bool_disabled = n_clicks % 2
-    # if bool_disabled:
-        # GPIO.output(LED,1)
-        # return 'Fan is On', fan_on
-    # else: 
-        # GPIO.output(LED,0)
-        # return 'Fan is off', fan_off
+    """ TODO find a way to resolve that
+    if bool_disabled:
+        GPIO.output(LED,1)
+        return 'Fan is On', fan_on
+    else: 
+        GPIO.output(LED,0)
+        return 'Fan is off', fan_off
+    """
     
     if bool_disabled:
         reply = receiveRecentEmail()
@@ -175,12 +177,12 @@ def control_fan(n_clicks):
         n_clicks == 0
         return 'Fan is off', fan_off
     
-def send_email(subject, body, sender, recipients, password, unique_token):
-
+def send_email(subject, body, sender, recipients, password, unique_token, temperature):
+    # TODO have to add the message here to add the temperature
     msg = MIMEMultipart()
     msg['Subject'] = f'{unique_token}'
     msg['From'] = sender
-    msg['To'] = ', '.join(recipients)
+    msg['To'] = recipients
     # msg.attach(MIMEText(body, 'plain'))
     msg.attach(MIMEText(subject))
 
@@ -208,60 +210,6 @@ def receiveRecentEmail():
 
     unique_token = generate_token(token_length);
     send_email(subject, body, sender, recipients, password, unique_token)    
-    # sleep(30)
-    # imap_ssl_host = 'imap.mail.me.com'
-    # imap_ssl_host = 'imap.gmail.com'
-    # # imap_ssl_host = 'smtp.gmail.com'
-    # imap_ssl_port = 993
-    # imap = imaplib.IMAP4_SSL(imap_ssl_host, imap_ssl_port)
-    # imap.login(sender, password)
-
-    # imap.select("Inbox")
-
-    # _, msgnums = imap.search(None, f'FROM "{recipients}" UNSEEN') #to only check email of a specific person
-
-    #  GET the most recent email sent by the recipient  
-    # if msgnums[0]:
-    #     msgnum = msgnums[0].split()[-1]
-
-    #     _, data = imap.fetch(msgnum, "(RFC822)")
-    #     message = email.message_from_string(data[0][1].decode("utf-8"))
-
-    #     from_ = email.utils.parseaddr(message.get('From'))[1] #to only get the email address
-    #     to_ = message.get('To')
-    #     date_ = message.get('Date')
-    #     subject_ = message.get('Subject')
-
-    #     # if subject_ == "Re: " + subject: 
-    #     print('#-----------------------------------------#')
-    #     # print(f"From: {from_}")  #to only get the email address
-    #     # print(f"To: {to_}")
-    #     # print(f"Date: {date_}")
-    #     # print(f"Subject: {subject_}")
-    #     # print("Content:")
-    #     print (f'{subject} {unique_token}')
-    #     for part in message.walk():
-
-    #         content_type = part.get_content_type()
-    #         content_disposition = str(part.get('Content-Disposition'))
-
-    #         if content_type == "text/plain" and 'attachment' not in content_disposition: 
-    #             msgbody = part.get_payload()
-
-    #             first_line = msgbody.split('\n', 1)[0]
-    #             print(first_line);
-
-    #             if str(first_line).strip().lower() == "yes":
-    #                 # print("Fan will turn ON")
-    #                 return True;
-    #             else:
-    #                 # print("Failed to respond in time. Fan is OFF.")
-    #                 return False;
-
-    # else:
-    #     # print("Failed to respond in time. Fan is OFF.")
-    #     return False;
-    # imap.close()    
 
 
     
@@ -318,9 +266,19 @@ def receiveRecentEmail():
             imap.close()  
             # return False;
 
+#TODO somehow implement it
+def monitor_temperature_and_send_email():
+    while True:
+        humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, DHT_PIN)
 
+        if temperature is not None and temperature > temperature_threshold:
+            unique_token = generate_token(token_length)
+            send_email(subject, body, sender, recipients, password, unique_token, temperature)
+
+        sleep(60)
 
 # Run the app
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', debug=True)
     app.run(debug=True)
+    monitor_temperature_and_send_email()

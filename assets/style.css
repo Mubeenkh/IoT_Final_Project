@@ -1,0 +1,36 @@
+
+.feature-img{
+    height: 40%;
+    width: 40%;
+    
+}
+
+.button-style{
+    font-size:20px;
+    color: black;
+    height: 50px;
+    width: 200px;
+    border-radius:20px;
+    font-weight: bold;
+}
+
+#feature-container{
+    border:2px black solid;
+    border-radius:20px;
+    display:inline-block;
+    text-align: center;
+    padding:20px;
+    background-color: #528c9f;
+}
+#container {
+    border: 1px solid black;
+    align-items: center;
+    text-align: center;
+}
+#column {
+    border: 2px solid red;
+    /* align-items: center; */
+    /* text-align: center; */
+    justify-content: center;
+    display: flex;
+}

@@ -1,61 +1,134 @@
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 from time import sleep
 
 # Import packages
 from dash import Dash, html, Input, Output, State, callback, dcc
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
+# GPIO.setwarnings(False)
+# GPIO.setmode(GPIO.BCM)
 
-LED = 26
+# LED = 26
 
-GPIO.setup(LED,GPIO.OUT,initial=0)
+# GPIO.setup(LED,GPIO.OUT,initial=0)
 
 # Initialize the app
+
+# -----------------------------------------------
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# from time import sleep
+from itertools import chain
+import email
+import imaplib
+# import pprint
+
+subject = "The current temperature is ***. Would you like to turn on the fan?"
+body = ""
+
+sender = "python01100922@gmail.com"
+password = "txlzudjyidtoxtyj"
+
+recipients = "extramuffin0922@gmail.com"
+
+
+
+
+import secrets
+import random
+import string
+token_length = 16
+# -----------------------------------------------
 app = Dash(__name__)
+
+
+# switch_turn_off_style = {'color': 'rgb(154, 154, 154)'}
+img_light_off = 'assets/images/light_off.png'
+style_img = {
+    'height': '150px',
+    'width':'150px',
+}
 
 # switch_turn_on_style = {'color': 'rgb(209, 231, 42)'}
 img_light_on = 'assets/images/light_on.png'
 style_img_light_on = {
-    'height': '40%',
-    'width':'40%',
+    'height': '150px',
+    'width':'150px',
     '-webkit-filter': 'drop-shadow(1px 1px 20px rgba(255, 255, 0, 1))',
     'filter': 'drop-shadow(1px 1px 20px rgba(255, 255, 0, 1))',
 }
 
-# switch_turn_off_style = {'color': 'rgb(154, 154, 154)'}
-img_light_off = 'assets/images/light_off.png'
-style_img_light_off = {
-    'height': '40%',
-    'width':'40%',
+
+fan_off = 'assets/images/fan.png'
+style_img_fan = {
+    'height': '150px',
+    'width':'150px',
 }
-
-
+fan_on = 'assets/images/fan.gif'
+# style_img_fan_on = {
+#     'height': '40%',
+#     'width':'40%',
+# }
 
 # App layout
-app.layout = html.Div(
+app.layout = html.Div( id='layout',style={},
     children=[
         # html.Div(children='Hello World')
         html.Div([
-            html.H2('Phase 1:'),
-            html.Div([
+            html.H2('IoT Project'),
+            html.Div(id='column', children=[
                 html.Div([
-                    html.Img(src=img_light_off,id='light-img',style={})
-                ],style={}),
-                html.Div([
-                    html.Button('Turn On', id='light-switch', n_clicks=0,style={})
-                ],style={})
-                
-            ],id='light-container',style={}),
-            # 'width': '50%' or 'display':'inline-block'
-            # 'justify':'center','align':'center', 
+                    html.Div([
+                        html.Img(
+                            src=img_light_off,
+                            className="feature-img",
+                            id='light-img',
+                            style={}
+                        )
+                    ]),
+                    html.Div([
+                        html.Button(
+                            'Turn On', 
+                            className="button-style", 
+                            id='light-switch', 
+                            n_clicks=0,
+                            style={}
+                        )
+                    ])
+                        
+                ],id='feature-container'),
 
-        ])
+                html.Div([
+                    html.Div([
+                        html.Img(
+                            src='assets/images/hot.png',
+                            className="feature-img", 
+                            id='fan-img',
+                            style=style_img_fan
+                        )
+                    ]),
+                    html.Div([
+                        html.Button(
+                            'Fan On',
+                            className="button-style", 
+                            id='fan-switch', 
+                            n_clicks=0,
+                            style={}
+                        )
+                    ])
+                    
+                ],id='feature-container'),
+            ])
+        ], id='container'),
+
     ]
-    ,style={}
 )
 
-@callback(
+
+
+
+@app.callback(
     [Output('light-switch', 'children'),
     #  Output('light-switch', 'style'),
      Output('light-switch', 'title'),
@@ -67,11 +140,185 @@ app.layout = html.Div(
 def update_button(n_clicks):
     bool_disabled = n_clicks % 2
     if bool_disabled:
-        GPIO.output(LED,1)
+        # GPIO.output(LED,1)
         return 'Turn Off', 'Too bright', img_light_on, style_img_light_on
     else: 
-        GPIO.output(LED,0)
-        return 'Turn On','Too dark', img_light_off, style_img_light_off
+        # GPIO.output(LED,0)
+        return 'Turn On','Too dark', img_light_off, style_img
+
+
+@app.callback(
+    [Output('fan-switch','children'),
+     Output('fan-img', 'src')],
+    Input('fan-switch', 'n_clicks')
+)
+
+def control_fan(n_clicks):
+    # print("dfd");
+    bool_disabled = n_clicks % 2
+    # if bool_disabled:
+        # GPIO.output(LED,1)
+        # return 'Fan is On', fan_on
+    # else: 
+        # GPIO.output(LED,0)
+        # return 'Fan is off', fan_off
+    
+    if bool_disabled:
+        reply = receiveRecentEmail()
+        if reply == True:
+            n_clicks == 0
+            return 'Fan is On', fan_on
+        else:
+            n_clicks == 0
+            return 'Fan is off', fan_off
+    else:
+        n_clicks == 0
+        return 'Fan is off', fan_off
+    
+def send_email(subject, body, sender, recipients, password, unique_token):
+
+    msg = MIMEMultipart()
+    msg['Subject'] = f'{unique_token}'
+    msg['From'] = sender
+    msg['To'] = ', '.join(recipients)
+    # msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(subject))
+
+    print("Connecting to server..")
+    smtp_server =  smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    # smtp_server =  imaplib.IMAP4_SSL("imap.gmail.com", 465)
+
+    print("Logging in..")
+    smtp_server.login(sender, password)
+    print("Successfully Logged In!")
+
+    smtp_server.sendmail(sender, recipients, msg.as_string())
+    # smtp_server.quit()
+    print('Email sent successfully.')
+    print("Message sent! Please respond within 30sec! NOT REALLY I DIDNT DO IT YET")
+
+    
+def generate_token(length):
+    alphabet = string.ascii_letters + string.digits # combines all alphabet (uppercase and lowercase) with 0 to 9
+    token = ''.join(secrets.choice(alphabet) for i in range(length)) # secrets.choice() Return a randomly chosen element from a non-empty sequence.
+    return token; 
+
+# GET the most RECENT email from recipients
+def receiveRecentEmail():
+
+    unique_token = generate_token(token_length);
+    send_email(subject, body, sender, recipients, password, unique_token)    
+    # sleep(30)
+    # imap_ssl_host = 'imap.mail.me.com'
+    # imap_ssl_host = 'imap.gmail.com'
+    # # imap_ssl_host = 'smtp.gmail.com'
+    # imap_ssl_port = 993
+    # imap = imaplib.IMAP4_SSL(imap_ssl_host, imap_ssl_port)
+    # imap.login(sender, password)
+
+    # imap.select("Inbox")
+
+    # _, msgnums = imap.search(None, f'FROM "{recipients}" UNSEEN') #to only check email of a specific person
+
+    #  GET the most recent email sent by the recipient  
+    # if msgnums[0]:
+    #     msgnum = msgnums[0].split()[-1]
+
+    #     _, data = imap.fetch(msgnum, "(RFC822)")
+    #     message = email.message_from_string(data[0][1].decode("utf-8"))
+
+    #     from_ = email.utils.parseaddr(message.get('From'))[1] #to only get the email address
+    #     to_ = message.get('To')
+    #     date_ = message.get('Date')
+    #     subject_ = message.get('Subject')
+
+    #     # if subject_ == "Re: " + subject: 
+    #     print('#-----------------------------------------#')
+    #     # print(f"From: {from_}")  #to only get the email address
+    #     # print(f"To: {to_}")
+    #     # print(f"Date: {date_}")
+    #     # print(f"Subject: {subject_}")
+    #     # print("Content:")
+    #     print (f'{subject} {unique_token}')
+    #     for part in message.walk():
+
+    #         content_type = part.get_content_type()
+    #         content_disposition = str(part.get('Content-Disposition'))
+
+    #         if content_type == "text/plain" and 'attachment' not in content_disposition: 
+    #             msgbody = part.get_payload()
+
+    #             first_line = msgbody.split('\n', 1)[0]
+    #             print(first_line);
+
+    #             if str(first_line).strip().lower() == "yes":
+    #                 # print("Fan will turn ON")
+    #                 return True;
+    #             else:
+    #                 # print("Failed to respond in time. Fan is OFF.")
+    #                 return False;
+
+    # else:
+    #     # print("Failed to respond in time. Fan is OFF.")
+    #     return False;
+    # imap.close()    
+
+
+    
+    while True:
+        imap_ssl_host = 'imap.gmail.com'
+        # imap_ssl_host = 'smtp.gmail.com'
+        imap_ssl_port = 993
+        imap = imaplib.IMAP4_SSL(imap_ssl_host, imap_ssl_port)
+        imap.login(sender, password)
+
+        imap.select("Inbox")
+        _, msgnums = imap.search(None, f'FROM "{recipients}" UNSEEN') #to only check email of a specific person
+        if msgnums[0]:
+            msgnum = msgnums[0].split()[-1]
+
+            _, data = imap.fetch(msgnum, "(RFC822)")
+            message = email.message_from_string(data[0][1].decode("utf-8"))
+
+            from_ = email.utils.parseaddr(message.get('From'))[1] #to only get the email address
+            to_ = message.get('To')
+            date_ = message.get('Date')
+            subject_ = message.get('Subject')
+
+            # if subject_ == "Re: " + subject: 
+            print('#-----------------------------------------#')
+            print(f"From: {from_}")  #to only get the email address
+            print(f"To: {to_}")
+            print(f"Date: {date_}")
+            print(f"Subject: {subject_}")
+            print("Content:")
+            # print (f'{subject} {unique_token}')
+            for part in message.walk():
+
+                content_type = part.get_content_type()
+                content_disposition = str(part.get('Content-Disposition'))
+
+                if content_type == "text/plain" and 'attachment' not in content_disposition: 
+                    msgbody = part.get_payload()
+
+                    first_line = msgbody.split('\n', 1)[0]
+                    print(first_line);
+        
+                    if str(first_line).strip().lower() == "yes" and subject_ == f'Re: {unique_token}':
+                        print("Fan will turn ON")
+                        imap.close()  
+                        return True;
+                    else:
+                        print("2. Failed to respond in time. Fan is OFF.")
+                        imap.close()  
+                        return False;
+
+        else:
+            print("1. Failed to respond in time. Fan is OFF.")
+            imap.close()  
+            # return False;
+
+
 
 # Run the app
 if __name__ == '__main__':

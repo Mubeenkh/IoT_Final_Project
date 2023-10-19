@@ -20,15 +20,17 @@
     display:inline-block;
     text-align: center;
     padding:20px;
-    background-color: #528c9f;
+    background-color: #abafd5;
 }
+
+
 #container {
-    border: 1px solid black;
+    /* border: 1px solid black; */
     align-items: center;
     text-align: center;
 }
 #column {
-    border: 2px solid red;
+    /* border: 2px solid red; */
     /* align-items: center; */
     /* text-align: center; */
     justify-content: center;

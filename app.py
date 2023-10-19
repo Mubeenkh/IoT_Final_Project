@@ -1,32 +1,25 @@
-import RPi.GPIO as GPIO
-from time import sleep
-
-import Adafruit_DHT
 # Import packages
+# import RPi.GPIO as GPIO
 from dash import Dash, html, Input, Output, State, callback, dcc
-
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-
-LED = 26
-DHT_PIN = 17          
-temperature_threshold = 24
-
-GPIO.setup(LED,GPIO.OUT,initial=0)
-GPIO.setup(DHT_PIN, GPIO.IN)
-
-# Initialize the app
-
+import dash_daq as daq
 # -----------------------------------------------
 import smtplib
+import imaplib
+import email
+
+from time import sleep
+
+# import Adafruit_DHT
+import secrets
+import string
+
+
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
-# from time import sleep
 from itertools import chain
-import email
-import imaplib
-# import pprint
+
+
 
 subject = "The current temperature is ***. Would you like to turn on the fan?"
 body = ""
@@ -34,27 +27,32 @@ body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
 
-recipients = "leonellalevymartel@gmail.com"
-
-
-
-
-import secrets
-import random
-import string
+# recipients = "leonellalevymartel@gmail.com"
+recipients = "extramuffin0922@gmail.com"
 token_length = 16
-# -----------------------------------------------
+
+
+# GPIO.setwarnings(False)
+# GPIO.setmode(GPIO.BCM)
+
+# LED = 26
+# DHT_PIN = 17          
+# temperature_threshold = 24
+
+# GPIO.setup(LED,GPIO.OUT,initial=0)
+# GPIO.setup(DHT_PIN, GPIO.IN)
+
+
+# Initialize the app
 app = Dash(__name__)
 
-
-# switch_turn_off_style = {'color': 'rgb(154, 154, 154)'}
+# Light images and CSS 
 img_light_off = 'assets/images/light_off.png'
 style_img = {
     'height': '150px',
     'width':'150px',
 }
 
-# switch_turn_on_style = {'color': 'rgb(209, 231, 42)'}
 img_light_on = 'assets/images/light_on.png'
 style_img_light_on = {
     'height': '150px',
@@ -64,24 +62,24 @@ style_img_light_on = {
 }
 
 
+# Fan images and CSS
 fan_off = 'assets/images/fan.png'
+fan_on = 'assets/images/fan.gif'
 style_img_fan = {
     'height': '150px',
     'width':'150px',
 }
-fan_on = 'assets/images/fan.gif'
-# style_img_fan_on = {
-#     'height': '40%',
-#     'width':'40%',
-# }
+
 
 # App layout
-app.layout = html.Div(id='layout', style={},
+app.layout = html.Div( id='layout',style={},
     children=[
-        html.Div([
+
+        html.Div(id='container', children=[
             html.H2('IoT Project'),
+
             html.Div(id='column', children=[
-                html.Div([
+                html.Div(id='feature-container', children=[
                     html.Div([
                         html.Img(
                             src=img_light_off,
@@ -99,17 +97,70 @@ app.layout = html.Div(id='layout', style={},
                             style={}
                         )
                     ])
-                ], id='light-container'),
+                        
+                ]),
 
-                html.Div([
-                    html.Div([
+                html.Div(id='feature-container',children=[
+                    html.Div(children=[
+
+                        html.Div(
+                            # daq.Gauge(
+                            #     showCurrentValue=True,
+                            #     units="°C",
+                            #     # TODO: change the value with current temperature
+                            #     value=20,
+                            #     min=-50,
+                            #     max=50,
+                            #     size=150
+                            # ),
+                            daq.Thermometer(
+                                min=-10,
+                                max=40,
+                                value=20,
+                                showCurrentValue=True,
+                                units="C",
+                                label='Temperature',
+                                style={'font-size':'100px'}
+                            )
+
+                        ),
+                        html.Div(
+                            daq.Gauge(
+                                color={
+                                    "gradient":True,
+                                    "ranges":{
+                                        "green":[0,60],
+                                        "yellow":[60,80],
+                                        "red":[80,100]
+                                    }
+                                },
+                                label='Humidity',
+                                showCurrentValue=True,
+                                units="%",
+                                # TODO: change the value with current Humidity %
+                                value=20,
+                                min=0,
+                                max=100,
+                                size=150
+                            ),
+                        ),
+
+                    ]),
+
+                ]),
+                html.Div(id='feature-container',children=[
+
+                    html.Div(children=[
+
                         html.Img(
-                            src='assets/images/hot.png',
+                            src='assets/images/fan.png',
                             className="feature-img", 
                             id='fan-img',
-                            #style=style_img_fandatasheet
-                        )
+                            style=style_img_fan
+                        ),
+
                     ]),
+                    
                     html.Div([
                         html.Button(
                             'Fan On',
@@ -119,12 +170,13 @@ app.layout = html.Div(id='layout', style={},
                             style={}
                         )
                     ])
-                ], id='fan-container'),
+                    
+                ]),
             ])
-        ], id='container'),
+        ]),
+
     ]
 )
-
 
 
 
@@ -140,10 +192,10 @@ app.layout = html.Div(id='layout', style={},
 def update_button(n_clicks):
     bool_disabled = n_clicks % 2
     if bool_disabled:
-        GPIO.output(LED,1)
+        # GPIO.output(LED,1)
         return 'Turn Off', 'Too bright', img_light_on, style_img_light_on
     else: 
-        GPIO.output(LED,0)
+        # GPIO.output(LED,0)
         return 'Turn On','Too dark', img_light_off, style_img
 
 
@@ -177,33 +229,9 @@ def control_fan(n_clicks):
         n_clicks == 0
         return 'Fan is off', fan_off
     
-def send_email(subject, body, sender, recipients, password, unique_token, temperature):
-    # TODO have to add the message here to add the temperature
-    msg = MIMEMultipart()
-    msg['Subject'] = f'{unique_token}'
-    msg['From'] = sender
-    msg['To'] = recipients
-    # msg.attach(MIMEText(body, 'plain'))
-    msg.attach(MIMEText(subject))
 
-    print("Connecting to server..")
-    smtp_server =  smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    # smtp_server =  imaplib.IMAP4_SSL("imap.gmail.com", 465)
 
-    print("Logging in..")
-    smtp_server.login(sender, password)
-    print("Successfully Logged In!")
 
-    smtp_server.sendmail(sender, recipients, msg.as_string())
-    # smtp_server.quit()
-    print('Email sent successfully.')
-    print("Message sent! Please respond within 30sec! NOT REALLY I DIDNT DO IT YET")
-
-    
-def generate_token(length):
-    alphabet = string.ascii_letters + string.digits # combines all alphabet (uppercase and lowercase) with 0 to 9
-    token = ''.join(secrets.choice(alphabet) for i in range(length)) # secrets.choice() Return a randomly chosen element from a non-empty sequence.
-    return token; 
 
 # GET the most RECENT email from recipients
 def receiveRecentEmail():
@@ -211,8 +239,6 @@ def receiveRecentEmail():
     unique_token = generate_token(token_length);
     send_email(subject, body, sender, recipients, password, unique_token)    
 
-
-    
     while True:
         imap_ssl_host = 'imap.gmail.com'
         # imap_ssl_host = 'smtp.gmail.com'
@@ -266,19 +292,56 @@ def receiveRecentEmail():
             imap.close()  
             # return False;
 
+    
+def generate_token(length):
+    
+    # combines all alphabet (uppercase and lowercase) with 0 to 9
+    alphabet = string.ascii_letters + string.digits 
+
+    # secrets.choice() Return a randomly chosen element from a non-empty sequence.
+    token = ''.join(secrets.choice(alphabet) for i in range(length)) 
+    
+    return token; 
+
+# def send_email(subject, body, sender, recipients, password, unique_token, temperature):
+def send_email(subject, body, sender, recipients, password, unique_token):
+
+    # TODO have to add the message here to add the temperature
+    msg = MIMEMultipart()
+    msg['Subject'] = f'{unique_token}'
+    msg['From'] = sender
+    msg['To'] = recipients
+    # msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(subject))
+
+    print("Connecting to server..")
+    smtp_server =  smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    # smtp_server =  imaplib.IMAP4_SSL("imap.gmail.com", 465)
+
+    print("Logging in..")
+    smtp_server.login(sender, password)
+    print("Successfully Logged In!")
+
+    smtp_server.sendmail(sender, recipients, msg.as_string())
+    smtp_server.quit()
+
+    print('Email sent successfully.')
+    print("Please respond in time")
+
+
 #TODO somehow implement it
-def monitor_temperature_and_send_email():
-    while True:
-        humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, DHT_PIN)
+# def monitor_temperature_and_send_email():
+#     while True:
+#         humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, DHT_PIN)
 
-        if temperature is not None and temperature > temperature_threshold:
-            unique_token = generate_token(token_length)
-            send_email(subject, body, sender, recipients, password, unique_token, temperature)
+#         if temperature is not None and temperature > temperature_threshold:
+#             unique_token = generate_token(token_length)
+#             send_email(subject, body, sender, recipients, password, unique_token, temperature)
 
-        sleep(60)
+#         sleep(60)
 
 # Run the app
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', debug=True)
     app.run(debug=True)
-    monitor_temperature_and_send_email()
+    # monitor_temperature_and_send_email()

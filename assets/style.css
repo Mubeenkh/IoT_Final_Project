@@ -14,25 +14,60 @@
     font-weight: bold;
 }
 
-#feature-container{
-    border:2px black solid;
-    border-radius:20px;
-    display:inline-block;
-    text-align: center;
-    padding:20px;
-    background-color: #abafd5;
-}
-
-
 #container {
     /* border: 1px solid black; */
     align-items: center;
     text-align: center;
+    
 }
 #column {
-    /* border: 2px solid red; */
-    /* align-items: center; */
-    /* text-align: center; */
-    justify-content: center;
-    display: flex;
+
+    /* display: flex;
+    justify-content: center; */
+    display: grid;
+    gap: 50px;
+    grid-template-columns: auto auto auto;
+
 }
+
+/* Phase 2 emailing system */
+#fan-container{
+    padding: 20px;
+    
+    border: 1px solid black;
+    border-radius: 20px;
+    
+}
+#fan-img{
+    height: 150px;
+    width: 150px;
+}
+
+#therm-hum-display{
+    display: flex;
+    justify-content: space-evenly;
+}
+
+#light-container{
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+
+    border: 1px solid black;
+    border-radius: 20px;
+}
+
+#feature-container{
+    
+    text-align: center;
+    padding:20px;
+    width: 150px; 
+
+    border:2px black solid;
+    border-radius:20px;
+
+}
+
+

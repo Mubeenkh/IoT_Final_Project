@@ -1,5 +1,4 @@
 # Import packages
-# import RPi.GPIO as GPIO
 from dash import Dash, html, Input, Output, State, callback, dcc
 import dash_daq as daq
 
@@ -8,9 +7,9 @@ import smtplib
 import imaplib
 import email
 
+import time
 from time import sleep
 
-# import Adafruit_DHT
 import secrets
 import string
 
@@ -18,102 +17,86 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itertools import chain
 
-
-# -----------------------------------------------
 subject = ""
-body = "The current temperature is ***. Would you like to turn on the fan?"
-
+body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
-
 # recipients = "leonellalevymartel@gmail.com"
 recipients = "extramuffin0922@gmail.com"
+
 token_length = 16
 
-
-# -----------------------------------------------
-# RPi components :
-# GPIO.setwarnings(False)
-# GPIO.setmode(GPIO.BCM)
-
-# LED = 26
-# DHT_PIN = 17          
-# temperature_threshold = 24
-
-# GPIO.setup(LED,GPIO.OUT,initial=0)
-# GPIO.setup(DHT_PIN, GPIO.IN)
-
-
-# Initialize the app
-app = Dash(__name__)
-
-# Light images and CSS 
+# Light images
 img_light_off = 'assets/images/light_off.png'
-style_img = {
-    'height': '150px',
-    'width':'150px',
-}
-
 img_light_on = 'assets/images/light_on.png'
-style_img_light_on = {
-    'height': '150px',
-    'width':'150px',
-    '-webkit-filter': 'drop-shadow(1px 1px 20px rgba(255, 255, 0, 1))',
-    'filter': 'drop-shadow(1px 1px 20px rgba(255, 255, 0, 1))',
-}
 
-# Fan images and CSS
+# Fan images
 fan_off = 'assets/images/fan.png'
 fan_on = 'assets/images/fan.gif'
 
-# content for later
-profile_content =[
-    html.Img( src='assets/images/user.png',  style={'height': '100px', 'width':'100px',} ),
-    html.Div(style={'text-align':'left'},children=[
-        html.P('Username:'),
-        html.P('Favorites:'),
-        html.P('Temperature:'),
-        html.P('Humidity:'),
-        html.P('Light intensity:'),   
-    ])
-]
+# -----------------------------------------------
+# RPi components :
+import Freenove_DHT as DHT
+from LED import LED
+
+# Instantiating the LED component
+LED_PIN = 37
+l = LED(LED_PIN,False)
+
+# Instantiating the DHT11 component
+DHT_PIN = 11    
+dht = DHT.DHT(DHT_PIN)     
+temperature_threshold = 23
+fan_state = False
+
+email_count = 0
+
+# Initialize the app
+app = Dash(__name__)
 
 # Phase 2 content
 fan_content = [
 
     html.Div(id='therm-hum-display',children=[
-        html.Div(
-            daq.Thermometer(             
+        html.Div(children=[
+            daq.Thermometer(     
+                id='therm-id',       
                 showCurrentValue=True, label='Temperature (°C)',
 
                 # TODO: change the value with current Temperature °C
                 height=120,min=-10,max=40,units="°C",
-                value=20, 
-            )
-        ),
+                # value=0, 
+                value=0, 
+                # value=int(getTemperature()), 
+            ),
+        ]),
         html.Div(
             daq.Gauge(
+                id='humid-id',
                 color={"gradient":True,"ranges":{"green":[0,60],"yellow":[60,80],"red":[80,100]}},
                 showCurrentValue=True, label='Humidity (%)',
 
                 # TODO: change the value with current Humidity %
                 size=150,min=0,max=100,units="%",
-                value=20
+                value=0
+                # value=int(getHumidity())
             ),
         ),
+        dcc.Interval(id='refresh', interval=3*1000,n_intervals=0)
 
     ]),
     html.Div(children=[
 
         html.Div(children=[
-
-            html.Img( src='assets/images/fan.png', className="feature-img", id='fan-img' ),
-
+            html.Img( src='assets/images/fan.png', id='fan-img', className="feature-img" ),
         ]),
-        
-        html.Div([
-            html.Button( 'Fan On', className="button-style", id='fan-switch',  n_clicks=0 )
-        ]) 
+        daq.BooleanSwitch(
+            on=False,
+            disabled=True,
+            label="Off",
+            labelPosition="top",
+            color="#9B51E0"
+        )
 
     ]),
 
@@ -122,19 +105,11 @@ fan_content = [
 # Phase 1 content
 light_content =[
 
-    html.Div(id='feature-container',children=[
         html.Div([
-            html.Img( src=img_light_off, className="feature-img", id='light-img' )
+            html.Img( src=img_light_off, id='light-img', className="feature-img" )
         ]),
-        # html.Div([
-        #     html.Button( 'Turn On', className="button-style", id='light-switch', n_clicks=0 )
-        # ])
         daq.BooleanSwitch( on=False, id='light-switch', className='dark-theme-control' ),
-    ]),
-    
-    html.Div(id='feature-container',children=[
-        html.Div([ 'Phone thing' ]),
-    ])
+
         
 ];
 
@@ -146,8 +121,6 @@ app.layout = html.Div( id='layout',style={},
             
             html.Div(id='column', children=[
 
-                html.Div(style={'border':'1px solid black','backgroundColor':'grey', 'padding':'20px'},children=profile_content),
-
                 html.Div(id='fan-container',children=fan_content),
                 html.Div(id='light-container', children=light_content),
 
@@ -157,78 +130,133 @@ app.layout = html.Div( id='layout',style={},
     ]
 )
 
-
-# @app.callback(
-#     [Output('light-switch', 'children'),
-#      Output('light-switch', 'title'),
-#      Output('light-img', 'src'),
-#      Output('light-img', 'style'),],
-#     Input('light-switch', 'n_clicks')
-# )
-# def update_button(n_clicks):
-    # bool_disabled = n_clicks % 2
-    # if bool_disabled:
-    #     # GPIO.output(LED,1)
-    #     return 'Turn Off', 'Too bright', img_light_on, style_img_light_on
-    # else: 
-    #     # GPIO.output(LED,0)
-    #     return 'Turn On','Too dark', img_light_off, style_img
-
 @app.callback(
-    [Output('light-img', 'src'),
-     Output('light-img', 'style'),],
+    [Output('therm-id','value'),
+     Output('humid-id','value')],
+    # [Input('therm-id', 'value')],
+    Input('refresh','n_intervals')
+
+)
+def update_temp(n_intervals):
+    # print('-----------------------------------------')
+    # temp = getTemperature()
+    # humid = getHumidity()
+    DHT11_data = getDHT11Values()
+    temp = DHT11_data[0]
+    humid = DHT11_data[1]
+    # print(DHT11_data[0])
+    # print(DHT11_data[1])
+    # print()
+    return temp,humid
+
+# 
+@app.callback(
+    Output('fan-img', 'src'),
+    Input('therm-id', 'value'))
+def fan_control(value):
+    # temp = getTemperature()
+    
+    
+    global fan_state
+    global email_count
+    
+    print('------------------------------------Temp info------------------------------------------')
+    # print(email_count)
+    # print(fan_state)  
+    print(f'{value}°C')  
+    if(value > temperature_threshold ):
+
+        if(fan_state == False):
+            # THIS DOESN TWORK IT JSUT SPAMS EMAILS -----------------------------------------------------------------------
+            clientReply = False
+            unique_token = ''
+            if(email_count == 0):
+                email_count = 1
+                unique_token = generate_token(token_length)
+                body =f'The current temperature is {value}°C. Would you like to turn on the fan?'
+                send_email(subject, body, sender, recipients, password, unique_token)
+                clientReply = readRecentEmailReply(unique_token, value) 
+                sleep(5)
+                # print(clientReply)
+                print('send email')
+                
+            # clientReply = readRecentEmailReply(unique_token) 
+            # print(clientReply)
+            
+            # clientReply = checkYesResponse('NO')
+            if(clientReply == True):
+
+                fan_state = True
+                print(f'email sent: {email_count}')
+                print(f'fan on: {fan_state}') 
+                print('reply said yes')
+                # print('openning fan')
+                return fan_on
+            else:
+                fan_state = False
+                print(f'email sent: {email_count}')
+                print(f'fan on: {fan_state}') 
+                
+                print('reply said no')
+                return fan_off
+        else:
+            print(f'email sent: {email_count}')
+            print(f'fan on: {fan_state}')  
+            print('fan is already open')
+            return fan_on
+    else:
+        email_count =0
+
+    fan_state = False
+    print(f'email sent: {email_count}')
+    print(f'fan on: {fan_state}') 
+    return fan_off
+    
+
+
+# callback to turn light on and off
+@app.callback(
+    Output('light-img', 'src'),
     Input('light-switch', 'on')
 )
 def update_button(on):
-    print(on)
+
+    # print(on)
+    print('------------------------------------LED info------------------------------------------')
     if on == True:
-        # GPIO.output(LED,1)
-        return img_light_on, style_img_light_on
+        
+        l.setupLEDState(True)
+
+        return img_light_on 
     else: 
-        # GPIO.output(LED,0)
-        return img_light_off, style_img
-    
 
-@app.callback(
-    [Output('fan-switch','children'),
-     Output('fan-img', 'src')],
-    Input('fan-switch', 'n_clicks')
-)
+        l.setupLEDState(False)
 
-def control_fan(n_clicks):
-    # print("dfd");
-    bool_disabled = n_clicks % 2
+        return img_light_off
     
-    if bool_disabled:
-        reply = receiveRecentEmail()
-        if reply == True:
-            n_clicks == 0
-            return 'Fan is On', fan_on
-        else:
-            n_clicks == 0
-            return 'Fan is off', fan_off
-    else:
-        n_clicks == 0
-        return 'Fan is off', fan_off
-    
-
 
 # GET the most RECENT email from recipients
-def receiveRecentEmail():
+def readRecentEmailReply(unique_token, value):
 
-    unique_token = generate_token(token_length);
-    send_email(subject, body, sender, recipients, password, unique_token)    
+    
+    # body =f'The current temperature is {value}. Would you like to turn on the fan?'
+    # unique_token = generate_token(token_length);
+    # send_email(subject, body, sender, recipients, password, unique_token)    
+    
 
     while True:
+
         imap_ssl_host = 'imap.gmail.com'
-        # imap_ssl_host = 'smtp.gmail.com'
+
         imap_ssl_port = 993
         imap = imaplib.IMAP4_SSL(imap_ssl_host, imap_ssl_port)
         imap.login(sender, password)
-
+        # print(imap.login(sender, password)[0])
         imap.select("Inbox")
         _, msgnums = imap.search(None, f'FROM "{recipients}" UNSEEN') #to only check email of a specific person
+        
         if msgnums[0]:
+
             msgnum = msgnums[0].split()[-1]
 
             _, data = imap.fetch(msgnum, "(RFC822)")
@@ -239,39 +267,48 @@ def receiveRecentEmail():
             # date_ = message.get('Date')
             subject_ = message.get('Subject')
 
-            # if subject_ == "Re: " + subject: 
-            print('#-----------------------------------------#')
-            print(f"From: {from_}")  #to only get the email address
-            # print(f"To: {to_}")
-            # print(f"Date: {date_}")
-            # print(f"Subject: {subject_}")
-            print("Content:")
-            # print (f'{subject} {unique_token}')
-            for part in message.walk():
+            # Start of if statement
+            if subject_ == f'Re: {unique_token}':
 
-                content_type = part.get_content_type()
-                content_disposition = str(part.get('Content-Disposition'))
+                print('#-----------------------------------------#')
+                print(f"From: {from_}")  #to only get the email address
+                # print(f"To: {to_}")
+                # print(f"Date: {date_}")
+                print(f"Subject: {subject_}")
+                print("Content:")
+                # print (f'{subject} {unique_token}')
 
-                if content_type == "text/plain" and 'attachment' not in content_disposition: 
-                    msgbody = part.get_payload()
+                # Start of for loop
+                for part in message.walk():
 
-                    first_line = msgbody.split('\n', 1)[0]
-                    print(first_line);
-        
-                    if str(first_line).strip().lower() == "yes" and subject_ == f'Re: {unique_token}':
-                        print("Fan will turn ON")
-                        imap.close()  
-                        return True;
-                    else:
-                        print("2. Failed to respond in time. Fan is OFF.")
-                        imap.close()  
-                        return False;
+                        content_type = part.get_content_type()
+                        content_disposition = str(part.get('Content-Disposition'))
 
-        else:
-            print("1. Failed to respond in time. Fan is OFF.")
+                        if content_type == "text/plain" and 'attachment' not in content_disposition: 
+                            msgbody = part.get_payload()
+
+                            first_line = msgbody.split('\n', 1)[0]
+                            print(first_line);
+
+                            imap.close();
+                            return checkYesResponse(first_line)
+                            
+                # end of for loop
+            # end of if statement
+
+            # else:
+            print("Waiting...")
+            # print(t)/
             imap.close()  
             # return False;
 
+def checkYesResponse(first_line):
+    if str(first_line).strip().lower() == "yes":
+        print("Fan will turn ON")
+        return True;
+    else:
+        print("Fan will stay OFF.")
+        return False;
     
 def generate_token(length):
     
@@ -308,20 +345,70 @@ def send_email(subject, body, sender, recipients, password, unique_token):
     print('Email sent successfully.')
     print("Please respond in time")
 
+def getDHT11Values():
 
-#TODO somehow implement it
-# def monitor_temperature_and_send_email():
-#     while True:
-#         humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, DHT_PIN)
+    # dht = DHT.DHT(DHT_PIN)	#create a DHT class object
+    #counts = 0	# Measurement counts, basically count for output
+    # print('hello')
+    # while(True):
 
-#         if temperature is not None and temperature > temperature_threshold:
-#             unique_token = generate_token(token_length)
-#             send_email(subject, body, sender, recipients, password, unique_token, temperature)
+    for i in range(0,15):
+        chk = dht.readDHT11()	#read DHT11 and get a return value. Then determine whether
+                                #data read is normal according to the return value
+        if(chk is dht.DHTLIB_OK):	#read DHT11 and get a return value. Then determine
+                                    #whether data read is normal according to the return value.
+            # print("temp DHT11,OK!")
+            break
+        
+    # tempValue = dht.temperature
+    # print("temp: %.2f" %(dht.temperature))
+    # return float(dht.temperature)
+    data=[]
+    data.append(dht.temperature)
+    data.append(dht.humidity)
+    return data
 
-#         sleep(60)
+# def getHumidity():
+
+#     # dht = DHT.DHT(DHT_PIN)	#create a DHT class object
+#     #counts = 0	# Measurement counts, basically count for output
+#     # print('humid')
+#     # while(True):
+
+#     for i in range(0,15):
+#         chk = dht.readDHT11()	#read DHT11 and get a return value. Then determine whether
+#                                 #data read is normal according to the return value
+#         if(chk is dht.DHTLIB_OK):	#read DHT11 and get a return value. Then determine
+#                                     #whether data read is normal according to the return value.
+#             # print("humid HT11,OK!")
+#             break
+    
+#     # tempValue = dht.temperature
+#     # print("humid: %.2f" %(dht.humidity))
+#     return float(dht.humidity)
+    
+# def getTemperature():
+
+#     # dht = DHT.DHT(DHT_PIN)	#create a DHT class object
+#     #counts = 0	# Measurement counts, basically count for output
+#     # print('hello')
+#     # while(True):
+
+#     for i in range(0,15):
+#         chk = dht.readDHT11()	#read DHT11 and get a return value. Then determine whether
+#                                 #data read is normal according to the return value
+#         if(chk is dht.DHTLIB_OK):	#read DHT11 and get a return value. Then determine
+#                                     #whether data read is normal according to the return value.
+#             # print("temp DHT11,OK!")
+#             break
+        
+#     # tempValue = dht.temperature
+#     # print("temp: %.2f" %(dht.temperature))
+#     return float(dht.temperature)
+   
 
 # Run the app
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', debug=True)
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
+    # app.run(debug=True)
     # monitor_temperature_and_send_email()

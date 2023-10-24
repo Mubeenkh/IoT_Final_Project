@@ -1,7 +1,7 @@
 
 .feature-img{
-    height: 40%;
-    width: 40%;
+    height: 150px;
+    width: 150px;
     
 }
 
@@ -38,16 +38,16 @@
     border-radius: 20px;
     
 }
-#fan-img{
+/* #fan-img{
     height: 150px;
     width: 150px;
-}
+} */
 
 #therm-hum-display{
     display: flex;
     justify-content: space-evenly;
 }
-
+/* Phase 1 Light bul */
 #light-container{
     
     display: flex;
@@ -59,11 +59,16 @@
     border-radius: 20px;
 }
 
+/* #light-img{
+    height: 150px;
+    width: 150px;
+} */
+
 #feature-container{
     
     text-align: center;
     padding:20px;
-    width: 150px; 
+    width: 250px; 
 
     border:2px black solid;
     border-radius:20px;

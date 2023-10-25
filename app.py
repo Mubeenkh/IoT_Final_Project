@@ -1,6 +1,7 @@
 # Import packages
 from dash import Dash, html, Input, Output, State, callback, dcc
 import dash_daq as daq
+#import RPi.GPIO as GPIO
 
 # SMTP client session object that can be used to send mail to any internet machine with an SMTP
 import smtplib
@@ -22,10 +23,11 @@ body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
 # recipients = "leonellalevymartel@gmail.com"
-recipients = "extramuffin0922@gmail.com"
+#recipients = "extramuffin0922@gmail.com"
+recipients = "damianovisa@gmail.com"
 
 token_length = 16
-
+1
 # Light images
 img_light_off = 'assets/images/light_off.png'
 img_light_on = 'assets/images/light_on.png'
@@ -38,15 +40,27 @@ fan_on = 'assets/images/fan.gif'
 # RPi components :
 import Freenove_DHT as DHT
 from LED import LED
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+enable = 22 
+input1 = 27
+input2 = 18
+    
+GPIO.setup(enable,GPIO.OUT)
+GPIO.setup(input1,GPIO.OUT)
+GPIO.setup(input2,GPIO.OUT)
 
 # Instantiating the LED component
-LED_PIN = 37
+LED_PIN = 16
 l = LED(LED_PIN,False)
 
 # Instantiating the DHT11 component
-DHT_PIN = 11    
+DHT_PIN = 12    
 dht = DHT.DHT(DHT_PIN)     
-temperature_threshold = 23
+temperature_threshold = 24
 fan_state = False
 
 email_count = 0
@@ -191,6 +205,11 @@ def fan_control(value):
                 print(f'fan on: {fan_state}') 
                 print('reply said yes')
                 # print('openning fan')
+                
+                GPIO.output(enable,GPIO.HIGH)
+                GPIO.output(input1,GPIO.LOW)
+                GPIO.output(input2,GPIO.HIGH)
+                
                 return fan_on
             else:
                 fan_state = False
@@ -198,6 +217,10 @@ def fan_control(value):
                 print(f'fan on: {fan_state}') 
                 
                 print('reply said no')
+                GPIO.output(enable,GPIO.LOW)
+                GPIO.output(input1,GPIO.LOW)
+                GPIO.output(input2,GPIO.LOW)
+                
                 return fan_off
         else:
             print(f'email sent: {email_count}')
@@ -207,6 +230,9 @@ def fan_control(value):
     else:
         email_count =0
 
+    GPIO.output(enable,GPIO.LOW)
+    GPIO.output(input1,GPIO.LOW)
+    GPIO.output(input2,GPIO.LOW)
     fan_state = False
     print(f'email sent: {email_count}')
     print(f'fan on: {fan_state}') 

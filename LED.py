@@ -10,7 +10,7 @@ import RPi.GPIO as GPIO
 
 class LED:
 	
-    LED_PIN = 16
+    LED_PIN = 0
     state = False
     
     def __init__(self,LED_PIN,state):

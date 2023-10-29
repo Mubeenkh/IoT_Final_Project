@@ -50,7 +50,7 @@ led = LED(LED_PIN,False)
 # Instantiating the DHT11 component
 DHT_PIN = 26 
 dht = DHT.DHT(DHT_PIN)     
-temperature_threshold = 23
+temperature_threshold = 24
 fan_state = False
 
 #Instantiating the Motor component
@@ -62,8 +62,6 @@ motor = DCMotor(EN1,IN1,IN2,fan_state)
 
 # Email 
 email_count = 0
-
-
 
 
 # Initialize the app
@@ -352,7 +350,6 @@ def send_email(subject, body, sender, recipients, password, unique_token):
 
     print("Connecting to server..")
     smtp_server =  smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    # smtp_server =  imaplib.IMAP4_SSL("imap.gmail.com", 465)
 
     print("Logging in..")
     smtp_server.login(sender, password)
@@ -382,6 +379,6 @@ def getDHT11Data():
 
 # Run the app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
-    # app.run(debug=True)
-    # monitor_temperature_and_send_email()
+    # app.run(host='0.0.0.0', debug=True)
+    app.run(debug=True)
+    

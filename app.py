@@ -23,8 +23,8 @@ body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
 # recipients = "leonellalevymartel@gmail.com"
-recipients = "extramuffin0922@gmail.com"
-# recipients = "damianovisa@gmail.com"
+#recipients = "extramuffin0922@gmail.com"
+recipients = "damianovisa@gmail.com"
 
 token_length = 16
 
@@ -40,29 +40,25 @@ fan_on = 'assets/images/fan.gif'
 # RPi components :
 import Freenove_DHT as DHT
 from LED import LED
-import RPi.GPIO as GPIO
-
-# Motor 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
-EN1 = 22 
-IN1 = 27
-IN2 = 17
-    
-GPIO.setup(EN1,GPIO.OUT)
-GPIO.setup(IN1,GPIO.OUT)
-GPIO.setup(IN2,GPIO.OUT)
+import DCMotor as MOTOR
+#import RPi.GPIO as GPIO
 
 # Instantiating the LED component
 LED_PIN = 16
 led = LED(LED_PIN,False)
 
 # Instantiating the DHT11 component
-DHT_PIN = 26 
+DHT_PIN = 12 
 dht = DHT.DHT(DHT_PIN)     
 temperature_threshold = 24
 fan_state = False
+
+#Instantiating the Motor component
+EN1 = 22 
+IN1 = 27
+IN2 = 18
+motor = MOTOR.DCMotor(EN1,IN1,IN2,fan_state)
+
 
 # Email 
 email_count = 0
@@ -205,15 +201,13 @@ def fan_control(value):
                 
 
             if(clientReply == True):
-
+    
                 fan_state = True
                 print(f'email sent: {email_count}')
                 print(f'fan on: {fan_state}') 
                 print('reply said yes')
 
-                GPIO.output(EN1,GPIO.HIGH)
-                GPIO.output(IN1,GPIO.LOW)
-                GPIO.output(IN2,GPIO.HIGH)
+                motor.control_fan(fan_state)
 
                 return fan_on
             else:
@@ -222,9 +216,8 @@ def fan_control(value):
                 print(f'fan on: {fan_state}') 
                 
                 print('reply said no')
-                GPIO.output(EN1,GPIO.LOW)
-                GPIO.output(IN1,GPIO.LOW)
-                GPIO.output(IN2,GPIO.LOW)
+                
+                motor.control_fan(fan_state)
 
                 return fan_off
         else:
@@ -234,10 +227,7 @@ def fan_control(value):
             return fan_on
     else:
         email_count =0
-
-    GPIO.output(EN1,GPIO.LOW)
-    GPIO.output(IN1,GPIO.LOW)
-    GPIO.output(IN2,GPIO.LOW)
+        motor.control_fan(fan_state)
 
     fan_state = False
     # print(f'email sent: {email_count}')

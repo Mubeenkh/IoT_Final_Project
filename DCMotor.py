@@ -1,19 +1,41 @@
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
-# class DCMotor:
-	
-#     LED_PIN = 0
-#     state = False
+class DCMotor:
+
+    EN1 = 0
+    IN1 = 0
+    IN2 = 0
+    state = False
     
-#     def __init__(self,LED_PIN,state):
-#         self.LED_PIN = LED_PIN
-#         self.state = state
+    def __init__(self,EN1,IN1,IN2,state):
+        self.EN1 = EN1
+        self.IN1 = IN1
+        self.IN2 = IN2
+        
+        self.state = state
 
-#         GPIO.setwarnings(False)
-#         GPIO.setmode(GPIO.BOARD)
-#         GPIO.setup(LED_PIN,GPIO.OUT,initial=state)
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(EN1,GPIO.OUT,initial=False)
+        GPIO.setup(IN1,GPIO.OUT,initial=False)
+        GPIO.setup(IN2,GPIO.OUT,initial=False)
 
+    def control_fan(self,state):
+        print(EN1)
+        print(IN1)
+        print(IN2)
+        if(state == True):
+            GPIO.output(EN1,GPIO.HIGH)
+            GPIO.output(IN1,GPIO.LOW)
+            GPIO.output(IN2,GPIO.HIGH)
+        
+        if(state == False):
+            GPIO.output(EN1,GPIO.LOW)
+            GPIO.output(IN1,GPIO.LOW)
+            GPIO.output(IN2,GPIO.LOW)
+        
+        
 #     def control_fan(self,):
 #         enable = 22 
 #         input1 = 27

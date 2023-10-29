@@ -3,10 +3,9 @@
 # Filename    : LED.py
 # Description :	LED for Raspberry
 # Author      : Mubeen Khan
-# modification: 2023/10/21
+# modification: 2023/10/29
 ########################################################################
 import RPi.GPIO as GPIO
-
 
 class LED:
 	
@@ -24,13 +23,12 @@ class LED:
     def setupLEDState(self,state):
         
         if(state == True):
-            print('light on')
-            # print(self.LED_PIN)
-            # print(state)
+            print('-------------------light on-------------------')
             GPIO.output(self.LED_PIN,1)
         else:
-            print('light off')
-            # print(self.LED_PIN)
-            # print(state)
+            print('-------------------light off-------------------')
             GPIO.output(self.LED_PIN,0)
+
+        # print(f' Fin LED: {self.LED_PIN}')
+        # print(f' LED state: {state}')
 

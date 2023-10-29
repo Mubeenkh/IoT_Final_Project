@@ -1,4 +1,24 @@
+/* background-color: #212121; */
+/* background-color: #424242; */
 
+
+
+#layout{
+    width: 70%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+body{
+
+    background-color: #292d3e;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+
+/* --------------------------- */
 .feature-img{
     height: 150px;
     width: 150px;
@@ -14,55 +34,73 @@
     font-weight: bold;
 }
 
+.card-component{
+    box-shadow: 0 10px 12px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    border-radius: 20px; /* 5px rounded corners */
+    
+    
+    background-color: #343951;
+    border: 5px solid #1b1e2b;
+
+    padding-left: 60px;
+    padding-right: 60px;
+    padding-top: 10px;
+    padding-bottom: 30px;
+
+}
+
 #container {
-    /* border: 1px solid black; */
     align-items: center;
     text-align: center;
     
 }
 #column {
-
-    /* display: flex;
-    justify-content: center; */
     display: grid;
     gap: 50px;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: auto auto;
 
 }
 
 /* Phase 2 emailing system */
-#fan-container{
-    padding: 20px;
-    
-    border: 1px solid black;
+#left-container{
+    padding: 10px;
+    /* border: 1px solid black; */
     border-radius: 20px;
     
 }
-/* #fan-img{
-    height: 150px;
-    width: 150px;
-} */
 
 #therm-hum-display{
     display: flex;
     justify-content: space-evenly;
+    /* margin-top: none; */
 }
+#fan-display{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    /* padding: 20px; */
+}
+
 /* Phase 1 Light bul */
+#right-container{
+    /* display: grid; */
+    padding: 20px;
+    text-align: center;
+    /* justify-content: center;
+    align-items: center; */
+    /* border: 1px solid red; */
+}
+
 #light-container{
     
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
+
+    /* width: 50%; */
     align-items: center;
 
-    border: 1px solid black;
+    /* border: 1px solid black; */
     border-radius: 20px;
 }
-
-/* #light-img{
-    height: 150px;
-    width: 150px;
-} */
 
 #feature-container{
     
@@ -75,4 +113,13 @@
 
 }
 
+#phone-container{
+    
+
+    /* width: 50%; */
+    align-items: center;
+
+    /* border: 1px solid black; */
+    border-radius: 20px;
+}
 

@@ -70,59 +70,59 @@ app = Dash(__name__)
 # Phase 2 content
 fan_content = [
 
-    html.Div(id='therm-hum-display',children=[
-        html.Div(className="card-component",children=[
+    # html.Div(id='therm-hum-display',children=[
+    #     html.Div(className="card-component",children=[
 
-            html.H3('Temperature (°C)'),
-            daq.Thermometer(   
+    #         html.H3('Temperature (°C)'),
+    #         daq.Thermometer(   
 
-                id='therm-id',       
-                showCurrentValue=True, 
-                height=120,min=-10,max=40,
-                value=0, 
+    #             id='therm-id',       
+    #             showCurrentValue=True, 
+    #             height=120,min=-10,max=40,
+    #             value=0, 
 
-            ),
-        ]),
-        html.Div(className="card-component", children=[
+    #         ),
+    #     ]),
+    #     html.Div(className="card-component", children=[
             
-            html.H3('Humidity (%)'),
-            daq.Gauge(
+    #         html.H3('Humidity (%)'),
+    #         daq.Gauge(
 
-                id='humid-id',
-                color={"gradient":True,"ranges":{"green":[0,60],"yellow":[60,80],"red":[80,100]}},
-                showCurrentValue=True, 
-                size=150,min=0,max=100,
-                value=0
+    #             id='humid-id',
+    #             color={"gradient":True,"ranges":{"green":[0,60],"yellow":[60,80],"red":[80,100]}},
+    #             showCurrentValue=True, 
+    #             size=150,min=0,max=100,
+    #             value=0
 
-            ),
-        ]),
-        dcc.Interval(id='refresh', interval=2*1000,n_intervals=0)
-    ]),
-    html.Div(id='fan-display',children=[
+    #         ),
+    #     ]),
+    #     dcc.Interval(id='refresh', interval=2*1000,n_intervals=0)
+    # ]),
+    # html.Div(id='fan-display',children=[
 
-        html.Div(className="card-component",children=[
-            html.H3('DC Motor Fan'),
-            html.Div(children=[
-                html.Img( src='assets/images/fan.png', id='fan-img', className="feature-img" ),
-            ]),
-        ])
+    #     html.Div(className="card-component",children=[
+    #         html.H3('DC Motor Fan'),
+    #         html.Div(children=[
+    #             html.Img( src='assets/images/fan.png', id='fan-img', className="feature-img" ),
+    #         ]),
+    #     ])
 
-    ]),
+    # ]),
 
 ]
 
 # Phase 1 content
 light_content =[
         
-    html.Div(className="card-component", children=[
+    # html.Div(className="card-component", children=[
 
-        html.H3('LED'),
-        html.Div([
-            html.Img( src=img_light_off, id='light-img', className="feature-img" )
-        ]),
-        html.Br(),
-        daq.BooleanSwitch( on=False, id='light-switch', className='dark-theme-control' ),
-    ])
+    #     html.H3('LED'),
+    #     html.Div([
+    #         html.Img( src=img_light_off, id='light-img', className="feature-img" )
+    #     ]),
+    #     html.Br(),
+    #     daq.BooleanSwitch( on=False, id='light-switch', className='dark-theme-control' ),
+    # ])
         
 ]
 
@@ -130,18 +130,141 @@ light_content =[
 app.layout = html.Div( id='layout',
     children=[
         
-        html.H1(style={},children=['IoT Project']),
-        html.Div(id='container', children=[
+        html.Div(style={'text-align':'center'},children=[
+            html.H1('IoT Dashboard'),
+        ]),
+        html.Div(className='container', children=[
             
-            html.Div(id='column', children=[
+            html.Div(className="column-left", children=[
+                # html.Div(className="card-component",children=[
 
-                html.Div(id='left-container',children=fan_content),
-                html.Div(id="right-container", children=[
-                    html.Div(id='light-container', children=light_content),
-                    # Phone scan thing for later on
+                    html.Div(style={'display':'grid', 'text-align':'left'},children=[
+                       html.Div( style={'text-align':'center'},children=[
+                            html.Img( src='assets/images/user.png', className="profile-img" ),
+                        ]),
+                        
+                        html.Div(style={'display':'grid', 'gap':'5px'},children=[
+
+                            html.Div(className='profile-label',children=[
+                                html.Label('ID: '),
+                            ]),
+                            html.Div(className='profile-label',children=[
+                                html.Label('Name: '),
+                            ]),
+                            html.Div(className='profile-label',children=[
+                                html.Label('Temp:'),
+                            ]),
+                            html.Div(className='profile-label',children=[
+                                html.Label('Humidity:'),
+                            ]),
+                            html.Div(className='profile-label', children=[
+                               html.Label('Light Intensity:'),
+                            ]),
+
+
+                        ])
+                    ])
+                    
+                # ]),
+            ]),
+            html.Div(className='column-right', children=[
+
+                html.Div(className='left-container',children=[
+
+
+                    html.Div(className="card-component",children=[
+
+                        html.H3('Temperature (°C)'),
+                        daq.Thermometer(   
+
+                            id='therm-id',       
+                            showCurrentValue=True, 
+                            height=120,min=-10,max=40,
+                            value=0, 
+
+                        ),
+                    ]),
+                    html.Div(className="card-component", children=[
+                        
+                        html.H3('Humidity (%)'),
+                        daq.Gauge(
+
+                            id='humid-id',
+                            color={"gradient":True,"ranges":{"green":[0,60],"yellow":[60,80],"red":[80,100]}},
+                            showCurrentValue=True, 
+                            size=150,min=0,max=100,
+                            value=0,
+
+                        ),
+                    ]),
+                    html.Div(className="card-component",children=[
+                        
+
+                        html.Div(style={},children=[
+                            html.H3('Light Intensity',),
+                        ]),
+                        
+                        html.Div(className="light-intensity",children=[
+                            html.Img( src='assets/images/sun_off.png', className="feature-img"),
+                            # html.Img( src='assets/images/sun_on.png', className="feature-img"),
+                            daq.Slider(
+                                min=0,
+                                max=1024,
+                                value=0,
+                                size=200,
+                                handleLabel={"showCurrentValue": True,"label": "Intensity", "color":"#1b1e2b"},
+                                color="#a56dc7",
+                                labelPosition='bottom',
+                                marks={'0': '0', '1024': '1024'},
+                                targets={
+                                    "900": {
+                                        # "showCurrentValue": "False",
+                                        "label": "Threshold",
+                                        "color": "#1b1e2b",
+                                    },
+                                },
+
+                            ),
+                                
+                        ]),
+                    ]),
+
+                    dcc.Interval(id='refresh', interval=2*1000,n_intervals=0)
+                    
+                ]),
+                html.Div(className="right-container", children=[
+
+                    html.Div(className="card-component", children=[
+
+                        html.Div(style={'display':'grid', 'grid-template-columns':'auto auto auto', },children=[
+                            html.H3('LED:'),
+                             #'justify-content': 'center','display': 'flex','align-items': 'center',
+                            html.Div(style={ 'grid-column': '3', 'padding-top':'20px'},children=[   
+                                # daq.PowerButton( on=False, id='light-switch', className='dark-theme-control', size=35 , color='#faff00'),
+                                daq.BooleanSwitch( on=False, id='light-switch', className='dark-theme-control', color='#707798'),
+                            ])
+                        ]),
+                        html.Div([
+                            html.Img( src=img_light_off, id='light-img',  className="feature-img" )
+                        ]),
+                        
+                    ]),
+
+                    html.Div(className="card-component", children=[
+
+                        html.Div(style={'text-align':'left', 'padding-left':'40px'}, children=[
+                            html.H3('DC Motor Fan:'),
+                        ]),
+                       
+                        html.Div(children=[
+                            html.Img( src='assets/images/fan.png', id='fan-img', className="feature-img" ),
+                        ]),
+                        
+                    ])
+                   
                 ])
 
-            ])
+            ],)
         ]),
 
     ]

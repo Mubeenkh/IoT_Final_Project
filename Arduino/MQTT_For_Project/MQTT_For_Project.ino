@@ -14,11 +14,15 @@ const int ANALOG_READ_PIN = A0;
 //const char* ssid ="Gemstelecom08624";
 //const char* password ="479202508624";
 
-const char* ssid = "TP-Link_2AD8";
-const char* password = "14730078";
+//const char* ssid = "TP-Link_2AD8";
+//const char* password = "14730078";
+
+const char* ssid = "VIRGIN389";
+const char* password = "A9D5164D6C25";
 
 //const char* mqtt_server = "mqtt.eclipseprojects.io";
-const char* mqtt_server = "192.168.0.157";
+//const char* mqtt_server = "192.168.0.157";
+const char* mqtt_server = "192.168.2.40";
 
 WiFiClient vanieriot;
 PubSubClient client(vanieriot);
@@ -95,7 +99,7 @@ void loop() {
     client.publish("IoTlab/ESP","Hello IoTlab");
 
     sensorVal = analogRead(ANALOG_READ_PIN);
-    Serial.printf("Light INtensity: %d \n", sensorVal);
+    Serial.printf("Light Intensity: %d \n", sensorVal);
     // Values from 0-1024
     
 //    String value = String(sensorVal);

@@ -23,8 +23,8 @@ body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
 # recipients = "leonellalevymartel@gmail.com"
-recipients = "extramuffin0922@gmail.com"
-# recipients = "damianovisa@gmail.com"
+#recipients = "extramuffin0922@gmail.com"
+recipients = "damianovisa@gmail.com"
 
 token_length = 16
 
@@ -36,12 +36,18 @@ img_light_on = 'assets/images/light_on.png'
 fan_off = 'assets/images/fan.png'
 fan_on = 'assets/images/fan.gif'
 
+#Intensity images
+intensity_off = 'assets/images/sun_off.png'
+intensity_on = 'assets/images/sun_on.png'
+
 # -----------------------------------------------
 # RPi components :
 import Freenove_DHT as DHT
 from LED import LED
 from DCMotor import DCMotor
+from Photoresistor import Photoresistor
 
+resistor = Photoresistor()
 
 # Instantiating the LED component
 LED_PIN = 16
@@ -51,6 +57,7 @@ led = LED(LED_PIN,False)
 DHT_PIN = 26 
 dht = DHT.DHT(DHT_PIN)     
 temperature_threshold = 24
+intensity_threshold = 400
 fan_state = False
 
 #Instantiating the Motor component
@@ -205,9 +212,10 @@ app.layout = html.Div( id='layout',
                         ]),
                         
                         html.Div(className="light-intensity",children=[
-                            html.Img( src='assets/images/sun_off.png', className="feature-img"),
+                            html.Img( src=intensity_off, className="feature-img", id="intensity-img"),
                             # html.Img( src='assets/images/sun_on.png', className="feature-img"),
                             daq.Slider(
+                                id='intensity-id',
                                 min=0,
                                 max=1024,
                                 value=0,
@@ -217,7 +225,7 @@ app.layout = html.Div( id='layout',
                                 labelPosition='bottom',
                                 marks={'0': '0', '1024': '1024'},
                                 targets={
-                                    "900": {
+                                    intensity_threshold: {
                                         # "showCurrentValue": "False",
                                         "label": "Threshold",
                                         "color": "#1b1e2b",
@@ -241,7 +249,7 @@ app.layout = html.Div( id='layout',
                              #'justify-content': 'center','display': 'flex','align-items': 'center',
                             html.Div(style={ 'grid-column': '3', 'padding-top':'20px'},children=[   
                                 # daq.PowerButton( on=False, id='light-switch', className='dark-theme-control', size=35 , color='#faff00'),
-                                daq.BooleanSwitch( on=False, id='light-switch', className='dark-theme-control', color='#707798'),
+                                daq.BooleanSwitch( on=False, id='light-switch', className='dark-theme-control', color='#707798', disabled=True),
                             ])
                         ]),
                         html.Div([
@@ -288,6 +296,18 @@ def update_temp(n_intervals):
     # print(f'{humid}%')
     return temp,humid
     # return 0 , 0
+    
+@app.callback(
+    Output('intensity-id','value'),
+    Input('refresh','n_intervals')
+
+)    
+def update_intensity(n_intervals):
+    intensity = resistor.getLightIntensity()
+    light = intensity
+
+    return light
+
 
 # Checking the value of the thermometer to see whether the application should send 
 # the client an email or not. If they reply YES, then we turn on the fan, otherwise we leave it off
@@ -303,7 +323,7 @@ def fan_control(value):
     print('------------------------------------Temp info------------------------------------------')
     # print(email_count)
     # print(fan_state)  
-    print(f' Temp: {value}°C')  
+    print(f' Temp: {value}°C')
     print(f' Email Sent: {email_count}')
     print(f' Fan on: {fan_state}') 
     
@@ -361,21 +381,22 @@ def fan_control(value):
 
 # callback to turn light on and off
 @app.callback(
-    Output('light-img', 'src'),
-    Input('light-switch', 'on')
+    [Output('light-img', 'src'),
+    Output('intensity-img', 'src'),
+    Output('light-switch','on')],
+    Input('intensity-id', 'value')
 )
-def update_button(on):
+def update_button(value):
 
-    # print(on)
     # print('------------------------------------LED info------------------------------------------')
-    if on == True:        
+    if value < intensity_threshold:        
         led.setupLEDState(True)
-        return img_light_on 
+        return img_light_on, intensity_on, True
     
     else: 
         led.setupLEDState(False)
-        return img_light_off
-    
+        return img_light_off, intensity_off, False
+
 
 # GET the most RECENT email from recipients
 def readRecentEmailReply(unique_token, value):
@@ -502,6 +523,6 @@ def getDHT11Data():
 
 # Run the app
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', debug=True)
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
+    #app.run(debug=True)
     

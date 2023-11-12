@@ -2,4 +2,3 @@
 
 ## Libraries used
 *pip install dash
-*pip install Adafruit_DHT

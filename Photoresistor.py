@@ -4,7 +4,7 @@
 # Description :	Getting  for Light Intensity data from Photoresistor using MQTT.
 #               Data is comming from ESP8266.
 # Author      : Mubeen Khan
-# modification: 2023/11/12
+# modification: 2023/11/03
 ########################################################################
 
 # pip install paho-mqtt
@@ -14,9 +14,8 @@ class Photoresistor:
 	
     topic_sub = "ESP8266/Photoresister" 
     # broker_address = "mqtt.eclipseprojects.io"
-    #broker_address = "192.168.0.157"
+    broker_address = "192.168.0.157"
     # broker_address = "172.20.10.2"
-    broker_address = "192.168.2.40"
 
     lightIntensity = 0
     

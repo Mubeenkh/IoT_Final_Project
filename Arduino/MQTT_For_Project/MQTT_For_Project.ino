@@ -20,9 +20,12 @@ const char* password ="479202508624";
 //const char* ssid = "TP-Link_2AD8";
 //const char* password = "14730078";
 
+// const char* ssid = "VIRGIN389";
+// const char* password = "A9D5164D6C25";
+
 //const char* mqtt_server = "mqtt.eclipseprojects.io";
 const char* mqtt_server = "192.168.0.157";
-//const char* mqtt_server = "172.20.10.2";
+// const char* mqtt_server = "192.168.2.40";
 
 
 WiFiClient vanieriot;

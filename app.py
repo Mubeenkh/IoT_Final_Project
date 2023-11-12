@@ -1,6 +1,7 @@
 # Import packages
 from dash import Dash, html, Input, Output, State, callback, dcc
 import dash_daq as daq
+from datetime import datetime
 # import dash_bootstrap_components as dbc
 
 # SMTP client session object that can be used to send mail to any internet machine with an SMTP
@@ -47,7 +48,8 @@ from LED import LED
 from DCMotor import DCMotor
 from Photoresistor import Photoresistor
 
-resistor = Photoresistor()
+#Current time
+#current_time = datetime.now()
 
 # Instantiating the LED component
 LED_PIN = 16
@@ -57,7 +59,6 @@ led = LED(LED_PIN,False)
 DHT_PIN = 26 
 dht = DHT.DHT(DHT_PIN)     
 temperature_threshold = 24
-intensity_threshold = 400
 fan_state = False
 
 #Instantiating the Motor component
@@ -66,9 +67,13 @@ IN1 = 27
 IN2 = 18
 motor = DCMotor(EN1,IN1,IN2,fan_state)
 
+#Instantiating the Intensity component
+resistor = Photoresistor()
+intensity_threshold = 400
 
 # Email 
 email_count = 0
+intensity_email_count = 0
 
 
 # Initialize the app
@@ -387,13 +392,26 @@ def fan_control(value):
     Input('intensity-id', 'value')
 )
 def update_button(value):
-
-    # print('------------------------------------LED info------------------------------------------')
-    if value < intensity_threshold:        
-        led.setupLEDState(True)
-        return img_light_on, intensity_on, True
+    current_time = datetime.now()
+    global intensity_email_count 
     
-    else: 
+    # print('------------------------------------LED info------------------------------------------')
+    if value < intensity_threshold:
+        unique_token = ''
+        
+        if(intensity_email_count == 0):
+            intensity_email_count = 1
+            
+            led.setupLEDState(True)
+            unique_token = generate_token(token_length)
+            body =f'The Light is ON at {current_time} '
+            send_email(subject, body, sender, recipients, password, unique_token)
+        
+            
+        return img_light_on, intensity_on, True
+        
+    else:
+        intensity_email_count = 0
         led.setupLEDState(False)
         return img_light_off, intensity_off, False
 

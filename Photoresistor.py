@@ -15,7 +15,7 @@ class Photoresistor:
     topic_sub = "ESP8266/Photoresister" 
     # broker_address = "mqtt.eclipseprojects.io"
     broker_address = "192.168.0.157"
-    # broker_address = "192.168.2.40"
+    # broker_address = "172.20.10.2"
 
     lightIntensity = 0
     

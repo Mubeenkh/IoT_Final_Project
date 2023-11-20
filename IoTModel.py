@@ -7,15 +7,17 @@
 ########################################################################
 import sqlite3 as sql
 
-class UserDatabase:
+class IoTModel:
     
-    def __init__(self):
-        pass
-        # Connect to a database
-        self.conn = sql.connect('iotdashboard.db')
-        # Create a cursor
-        self.cur = self.conn.cursor()
-        self.create_user_table()
+    conn = sql.connect('user_data.db')
+    cur = conn.cursor()
+    path = ""
+    def __init__(self, path):
+        self.path = path
+        # self.conn = sql.connect(f'{path}')
+        # self.cur = self.conn.cursor()
+        self.open_connection()
+        # self.create_user_table()
 
     def create_user_table(self):
         
@@ -24,69 +26,75 @@ class UserDatabase:
 
         # Create user Table
         self.conn.execute('''CREATE TABLE IF NOT EXISTS user 
-                            (user_id integer, 
+                            (user_id integer PRIMARY KEY, 
                             user_name text, 
+                            user_email text,
                             temp_threshold integer,
                             hum_threshold integer,
                             light_intensity_threshold integer)
                         ''') 
+        self.conn.commit()
 
-        # Insert some default values when creating the table
-        self.cur.execute("INSERT INTO user (user_id, user_name, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (1962558, 'Mubeenkh', 24, 60, 400)")
-        self.cur.execute("INSERT INTO user (user_id, user_name, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (2131305, 'RachelleBadua', 26, 70, 300)")
-        # self.cur.execute("INSERT INTO user (user_id, user_name, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (NULL, NULL, NULL, NULL, NULL)")
-
-    def insert_user(self,user_id, user_name, temp_threshold, hum_threshold, light_intensity_threshold):
-        self.cur.execute('''INSERT INTO user (user_id, user_name, temp_threshold, hum_threshold, light_intensity_threshold) 
+    def insert_user(self,user_id, user_name,user_email, temp_threshold, hum_threshold, light_intensity_threshold):
+        self.cur.execute('''INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) 
                             VALUES (?, ?, ?, ?, ?)''',
-                            user_id, user_name, temp_threshold, hum_threshold, light_intensity_threshold)
+                            user_id, user_name,user_email, temp_threshold, hum_threshold, light_intensity_threshold)
+        self.conn.commit()
 
+    def insertData(self):
+        self.cur.execute("INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (117222150172, 'Mubeenkh', 'extramuffin0922@gmail.com', 24, 60, 400)")
+        self.cur.execute("INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (615925249, 'RachelleBadua', 'mubkhan01@gmail.com', 22, 70, 300)")
+        self.conn.commit()
+    
     def select_all(self):
-        # SELECT:
+        
+        self.open_connection()
         self.cur.execute('''SELECT * FROM user''')
-        # self.conn.commit()
-        # print(self.cur.fetchall())
+        self.conn.commit()
         return self.cur.fetchall()
     
     def select_user(self, user_id):
-        # SELECT:
+        
+        self.open_connection()
         self.cur.execute("SELECT * FROM user WHERE user_id = ?", (user_id,))
-        # self.conn.commit()
-        # print(self.cur.fetchall())
+        self.conn.commit()
         return self.cur.fetchone()
     
     def update(self,user_id, temp_threshold, hum_threshold, light_intensity_threshold):
-        # UPDATE:
         self.cur.execute('''UPDATE user 
                          SET temp_threshold = ?, hum_threshold = ?, light_intensity_threshold = ? WHERE user_id = ?''',
                          temp_threshold, hum_threshold, light_intensity_threshold, user_id)
-        # self.cur.execute("SELECT * FROM user")
         self.conn.commit()
-        # print(self.cur.fetchall())
         
     def delete(self, user_id):
-        # DELETE:
         self.cur.execute("DELETE FROM user WHERE user_id = ?", user_id)
-        # cur.execute("SELECT * FROM user")
         self.conn.commit()
-        # print(cur.fetchall())
 
+    def open_connection(self):
+        # Open to DB object
+        self.conn = sql.connect(f'{self.path}')
+        self.cur = self.conn.cursor()
+        
     def close_connection(self):
         # Close DB object
         self.cur.close()
         self.conn.close()
-
+        
 
 if __name__ == '__main__':
-    
-    user_table = UserDatabase();
-        
+    path = 'user_data.db'
+    user_table = IoTModel(path)
+    user_table.create_user_table()
+    user_table.insertData()
+
     selectAll = user_table.select_all()
     print(selectAll)
+
     
-    selectUser = user_table.select_user(1962558)
+    selectUser = user_table.select_user(117222150172)
     print(selectUser)
-    selectUser = user_table.select_user(2131305)
-    print(selectUser)
+    selectUser = user_table.select_user(615925249)
+
     selectUser = user_table.select_user(123)
     print(selectUser)
+    # user_table.close_connection()

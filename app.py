@@ -36,7 +36,7 @@ fan_on = 'assets/images/fan.png'
 import Freenove_DHT as DHT
 from LED import LED
 from DCMotor import DCMotor
-from Photoresistor import Photoresistor
+from IoTController import IoTController
 
 # Instantiating the DHT11 component
 DHT_PIN = 26 
@@ -58,9 +58,19 @@ led_count = 0
 LED_img = img_light_off
 
 # Instantiating MQTT Client subscribe
-# PR = Photoresistor()
-resistor = Photoresistor()
+# PR = IoTController()
+# resistor = IoTController()
 lightIntensity = 0
+topic = IoTController()
+# client = topic.connect() 
+# topic.subscribe(client, "ESP8266/Photoresister")
+# topic.subscribe(client, "ESP8266/RFID")
+# topic.run(client)
+
+# print(f"dsdsdsd {topic.getLightIntensity}")
+# print(f'opiopiio {topic.getRfid}')
+
+
 
 # Email 
 email_count = 0
@@ -71,14 +81,22 @@ subject = ""
 body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
-recipients = "extramuffin0922@gmail.com"
-# recipients = "damianovisa@gmail.com"
-userID = "123456"
-userName = "Johnny Sins"
-temperature_threshold = 24
-humidity_threshold = 70
-lightIntensity_threshold = 400
+recipients = "email@email.com"
+# # recipients = "damianovisa@gmail.com"
+# userID = "123456"
+# userName = "Johnny Sins"
+# temp_threshold = 24
+# hum_threshold = 70
+# intensity_threshold = 400
 
+recipients = ""
+userID = ""
+userName = ""
+temp_threshold = 0
+hum_threshold = 0
+intensity_threshold = 0
+
+user_info = None
 
 # Initialize the app
 app = Dash(__name__)
@@ -104,30 +122,28 @@ app.layout = html.Div( id='layout',
 
                             html.Div(className='',children=[
                                 # html.Label(f'Name: {userName}'),
-                                html.Label(f'{userName}', style={}),
-                                html.Label(f'ID: {userID}', 
+                                html.Label(f'Username', style={}, id='user_name'),
+                                html.Label(f'email@email.com', 
                                             style={
                                                'color':'rgb( 213 213 213)',
-                                               'font-size':'15px'
-                                            }),
+                                               'font-size':'12px'
+                                            }, id='user_email'),
                             ], style={'display':'grid', 'text-align':'center'}),
-
-                            # html.Div(className='profile-label',children=[
-                            #     html.Label(f'ID: {userID}'),
-                            # ]),
                             
                             html.Div(className='profile-label',children=[
                                 html.Div(children=[
                                     html.Img( src='assets/images/tempThreshold.png',style={'height':'30px'}),
                                     
-                                    html.Label(f'Temperature: {temperature_threshold}°C', style={'margin-left':'5px'}),
+                                    html.Label(f'Temperature:', style={'margin-left':'5px'}),
+                                    html.Label('0°C', style={'margin-left':'5px'}, id='temp_threshold'),
                                 ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
                             ]),
                             html.Div(className='profile-label',children=[
                                 html.Div(children=[
                                     html.Img( src='assets/images/humidityThreshold.png',style={'height':'30px'}),
                                     
-                                    html.Label(f'Humidity: {humidity_threshold}%', style={'margin-left':'5px'}),
+                                    html.Label(f'Humidity:', style={'margin-left':'5px'}),
+                                    html.Label('0%', style={'margin-left':'5px'}, id='hum_threshold'),
                                 ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
                                 
                             ]),
@@ -135,7 +151,8 @@ app.layout = html.Div( id='layout',
                                 html.Div(children=[
                                     html.Img( src='assets/images/lightThreshold.png',style={'height':'30px'}),
                                     
-                                    html.Label(f'Light Intensity: {lightIntensity_threshold}', style={'margin-left':'5px'}),
+                                    html.Label(f'Light Intensity:', style={'margin-left':'5px'}),
+                                    html.Label('0', style={'margin-left':'5px'}, id='intensity_threshold'),
                                 ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
                             ]),
 
@@ -195,12 +212,10 @@ app.layout = html.Div( id='layout',
                                 value=0,
                                 size=200,
                                 handleLabel={"showCurrentValue": True,"label": "Intensity", "color":"#1b1e2b"},
-                                # color="#a56dc7",
-                                # color="rgb(255, 255, 0)",
                                 labelPosition='bottom',
                                 marks={'0': '0', '1024': '1024'},
                                 targets={
-                                    f'{lightIntensity_threshold}': {
+                                    f'{intensity_threshold}': {
                                         "label": "Threshold",
                                         "color": "#1b1e2b",
                                         # "color": "rgb(255, 255, 0)",
@@ -256,6 +271,58 @@ app.layout = html.Div( id='layout',
 
     ]
 )
+# {
+#     f'{intensity_threshold}': {
+#         "label": "Threshold",
+#         "color": "#1b1e2b",
+#     },
+# },
+
+@app.callback(
+    [Output('user_email','children'),
+    Output('user_name','children'),
+    Output('temp_threshold','children'),
+    Output('hum_threshold','children'),
+    Output('intensity_threshold','children'),
+    Output('light-intensity','targets')],
+    Input('refresh','n_intervals')    
+)
+def update_user(n_intervals):
+    global user_info
+    global recipients
+    global temp_threshold
+    global intensity_threshold 
+
+    user_info  = topic.getRfid()
+    if(user_info):
+        userID = user_info['user_id']
+        user_name = user_info['user_name']
+        recipients = user_info['user_email']
+        temp_threshold = user_info['temp_threshold']
+        hum_threshold = user_info['hum_threshold']
+        intensity_threshold = user_info['intensity_threshold']
+        slider_threshold = {
+            f'{intensity_threshold}': {
+                "label": "Threshold",
+                "color": "#1b1e2b",
+            },
+        }
+        return recipients, user_name, f'{temp_threshold}°C', f'{hum_threshold}%', intensity_threshold, slider_threshold
+    else:
+        userID = 'User ID'
+        user_name = 'Username'
+        recipients = 'email@email.com'
+        temp_threshold = 0
+        hum_threshold = 0
+        intensity_threshold = 0
+        slider_threshold = {
+            f'{intensity_threshold}': {
+                "label": "Threshold",
+                "color": "#1b1e2b",
+            },
+        }
+        return recipients, user_name, f'{temp_threshold}°C', f'{hum_threshold}%', intensity_threshold, slider_threshold
+
 
 @app.callback(
     [Output('light-intensity','value'),
@@ -268,9 +335,8 @@ def update_light_intensity(n_intervals):
     global lightIntensity
 
     # print('------------------------------Light intensity------------------------------')
-    # print(PR.getLightIntensity())
-    # lightIntensity = PR.getLightIntensity()
-    lightIntensity = resistor.getLightIntensity()
+    # lightIntensity = resistor.getLightIntensity()
+    lightIntensity = topic.getLightIntensity()
 
     photo_to_rgb = (lightIntensity/1024) *255
     styleBrightness={'--intensity':f'{20+photo_to_rgb}', '--brightness-value':f'{photo_to_rgb}'}
@@ -290,10 +356,11 @@ def update_LED(value):
     global LED_State
     global led_count
     global LED_img
+    global intensity_threshold 
 
     # print(f'LED state: {LED_State}, LED count: {led_count}')
-    
-    if value < lightIntensity_threshold:   
+
+    if (value < intensity_threshold and intensity_threshold != 0): 
         t = time.localtime()
         current_time = time.strftime("%H:%M",t) 
         # current_time = datetime.now()
@@ -347,6 +414,7 @@ def fan_control(value):
     global fan_state
     global email_count
     global clientReply
+    global temp_threshold
     fan_img = fan_off
     fan_class = 'fan-img'
     # -------------------
@@ -355,7 +423,7 @@ def fan_control(value):
     print(f' Email Sent: {email_count}')
     print(f' Fan on: {fan_state}') 
     
-    if(value > temperature_threshold ):
+    if(value > temp_threshold and temp_threshold != 0):
 
         if(fan_state == False):
             
@@ -418,6 +486,7 @@ def readRecentEmailReply(unique_token, value):
             msgnum = msgnums[0].split()[-1]
 
             _, data = imap.fetch(msgnum, "(RFC822)")
+            # print(data[0][1])
             message = email.message_from_string(data[0][1].decode("utf-8"))
 
             from_ = email.utils.parseaddr(message.get('From'))[1] #to only get the email address

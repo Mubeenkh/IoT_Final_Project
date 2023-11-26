@@ -61,7 +61,8 @@ LED_img = img_light_off
 # PR = IoTController()
 # resistor = IoTController()
 lightIntensity = 0
-topic = IoTController()
+# topic = IoTController()
+
 # client = topic.connect() 
 # topic.subscribe(client, "ESP8266/Photoresister")
 # topic.subscribe(client, "ESP8266/RFID")
@@ -81,8 +82,8 @@ subject = ""
 body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
-recipients = "email@email.com"
-# # recipients = "damianovisa@gmail.com"
+# recipients = "email@email.com"
+recipients = "damianovisa@gmail.com"
 # userID = "123456"
 # userName = "Johnny Sins"
 # temp_threshold = 24
@@ -115,7 +116,7 @@ app.layout = html.Div( id='layout',
 
                     html.Div(style={'display':'grid', 'text-align':'left'},children=[
                        html.Div( style={'text-align':'center'},children=[
-                            html.Img( src='assets/images/user.png', className="profile-img" ),
+                            html.Img( src='assets/images/pfp.png', className="profile-img"),
                         ]),
                         
                         html.Div(style={'display':'grid', 'gap':'5px'},children=[
@@ -582,5 +583,5 @@ def getDHT11Data():
 
 # Run the app
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', debug=True)
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
+    # app.run(debug=True)

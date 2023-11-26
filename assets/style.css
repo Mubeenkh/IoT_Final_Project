@@ -89,6 +89,7 @@ body{
     height: 150px;
     width: 150px;
     padding-top: 10px;
+    /* border-radius: 50%; */
 }
 .profile-label{
     border: 1px solid #1b1e2b;

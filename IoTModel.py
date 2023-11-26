@@ -44,6 +44,9 @@ class IoTModel:
     def insertData(self):
         self.cur.execute("INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (117222150172, 'Mubeenkh', 'extramuffin0922@gmail.com', 24, 60, 400)")
         self.cur.execute("INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (615925249, 'RachelleBadua', 'mubkhan01@gmail.com', 22, 70, 300)")
+        self.cur.execute("INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (1357908642, 'DamiVisa', 'damianovisa@gmail.com', 23, 75, 280)")
+        self.cur.execute("INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (969266012, 'JohnSmith', 'jsmith@hotmail.com', 24.4, 70, 350)")
+        self.cur.execute("INSERT INTO user (user_id, user_name, user_email, temp_threshold, hum_threshold, light_intensity_threshold) VALUES (239601823, 'TheRock', 'dwane@gmail.com', 24, 80, 200)")
         self.conn.commit()
     
     def select_all(self):
@@ -92,9 +95,9 @@ if __name__ == '__main__':
 
     
     selectUser = user_table.select_user(117222150172)
-    print(selectUser)
+    # print(selectUser)
     selectUser = user_table.select_user(615925249)
 
     selectUser = user_table.select_user(123)
-    print(selectUser)
+    # print(selectUser)
     # user_table.close_connection()

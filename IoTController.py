@@ -17,9 +17,9 @@ class IoTController:
     topic_sub1 = "ESP8266/Photoresister"
     topic_sub2 = "ESP8266/RFID" 
     topic = ""
-    broker_address = "192.168.0.157"
+    # broker_address = "192.168.0.157"
     # broker_address = "172.20.10.2"    
-    # broker_address = "192.168.2.40"
+    broker_address = "192.168.2.40"
 
     lightIntensity = 0
     rfid = 0

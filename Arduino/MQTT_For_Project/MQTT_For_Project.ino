@@ -45,7 +45,7 @@ PubSubClient client(vanieriot);
 
 void setup_wifi() {
   delay(10);
-  
+
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
@@ -55,6 +55,7 @@ void setup_wifi() {
     delay(500);
     Serial.print(".");
   }
+
   Serial.println("");
   Serial.print("WiFi connected - ESP-8266 IP address: ");
   Serial.println(WiFi.localIP());
@@ -77,9 +78,10 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
 //    if (client.connect("vanieriot")) {
+  
     if (client.connect("mqtt.eclipseprojects.io")) {
       Serial.println("connected");
-    
+
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -94,14 +96,18 @@ void reconnect() {
 
 String getDecID(byte *buffer, byte bufferSize) {
   String dec = "";   
+
   for (byte i = 0; i < bufferSize; i++) {
     dec += buffer[i], DEC;
   }
   Serial.println(dec);
+
   // Halt PICC
   rfid.PICC_HaltA();
+
   // Stop encryption on PCD
   rfid.PCD_StopCrypto1();
+  
   return dec;
 }
 
@@ -137,8 +143,6 @@ void loop() {
   // "IoTlab/ESP" is the topic , while the other is the string body    
   client.publish("IoTlab/ESP","Hello IoTlab");
 
-
-
 // Light intensity
   sensorVal = analogRead(ANALOG_READ_PIN);
   
@@ -148,15 +152,13 @@ void loop() {
   client.publish("ESP8266/Photoresister", (char*) s.c_str());
 
 // RFID
-  
   if ( ! rfid.PICC_IsNewCardPresent())
     return;
-    
+
   // Verify if the NUID has been readed
    if ( ! rfid.PICC_ReadCardSerial())
      return;
 
- 
   String rfid_tag = getDecID(rfid.uid.uidByte, rfid.uid.size);
   client.publish("ESP8266/RFID",rfid_tag.c_str());
 

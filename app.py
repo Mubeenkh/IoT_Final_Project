@@ -1,8 +1,6 @@
 # Import packages
 from dash import Dash, html, Input, Output, State, callback, dcc
 import dash_daq as daq
-# from datetime import datetime
-# import dash_bootstrap_components as dbc
 
 # SMTP client session object that can be used to send mail to any internet machine with an SMTP
 import smtplib
@@ -10,7 +8,6 @@ import imaplib
 import email
 
 import time
-from time import sleep
 
 import secrets
 import string
@@ -18,16 +15,11 @@ import string
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-import threading
-
-
 # Light images
 img_light_off = 'assets/images/light_off.png'
 img_light_on = 'assets/images/light_on.png'
 
 # Fan images
-# fan_off = 'assets/images/fan.png'
-# fan_on = 'assets/images/fan.gif'
 fan_off = 'assets/images/staticfan.png'
 fan_on = 'assets/images/fan.png'
 
@@ -76,6 +68,7 @@ password = "txlzudjyidtoxtyj"
 # hum_threshold = 70
 # intensity_threshold = 400
 
+user_info = None
 recipients = ""
 userID = ""
 userName = ""
@@ -83,7 +76,6 @@ temp_threshold = 0
 hum_threshold = 0
 intensity_threshold = 0
 
-user_info = None
 
 # -------------------------------------------------
 # Instantiating MQTT Client subscribe
@@ -248,14 +240,6 @@ app.layout = html.Div( id='layout',
 
                         html.Div(style={'display':'grid', 'grid-template-columns':'auto auto auto', },children=[
                             html.H3('DC Motor Fan:'),
-                            # html.Div(style={ 'grid-column': '3', 'padding-top':'20px'},children=[   
-                            #     daq.BooleanSwitch( 
-                            #         on=False, 
-                            #         id='fan-switch', 
-                            #         className='dark-theme-control', 
-                            #         color='#707798'
-                            #     ),
-                            # ])
                         ]),
                        
                         html.Div(children=[
@@ -565,7 +549,7 @@ def send_email(subject, body, sender, recipients, password, unique_token):
     msg['Subject'] = f'{unique_token}'
     msg['From'] = sender
     msg['To'] = recipients
-    # msg.attach(MIMEText(body, 'plain'))
+
     msg.attach(MIMEText(body))
 
     print("Connecting to server..")
@@ -575,7 +559,6 @@ def send_email(subject, body, sender, recipients, password, unique_token):
     smtp_server.quit()
 
     print('Email sent successfully.')
-    # print("Please respond in time")
 
 def getDHT11Data():
 

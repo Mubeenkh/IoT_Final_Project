@@ -18,7 +18,7 @@ import string
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-
+import threading
 
 
 # Light images
@@ -57,21 +57,7 @@ LED_State = False
 led_count = 0
 LED_img = img_light_off
 
-# Instantiating MQTT Client subscribe
-# PR = IoTController()
-# resistor = IoTController()
 lightIntensity = 0
-# topic = IoTController()
-
-# client = topic.connect() 
-# topic.subscribe(client, "ESP8266/Photoresister")
-# topic.subscribe(client, "ESP8266/RFID")
-# topic.run(client)
-
-# print(f"dsdsdsd {topic.getLightIntensity}")
-# print(f'opiopiio {topic.getRfid}')
-
-
 
 # Email 
 email_count = 0
@@ -83,7 +69,7 @@ body = ""
 sender = "python01100922@gmail.com"
 password = "txlzudjyidtoxtyj"
 # recipients = "email@email.com"
-recipients = "damianovisa@gmail.com"
+# recipients = "damianovisa@gmail.com"
 # userID = "123456"
 # userName = "Johnny Sins"
 # temp_threshold = 24
@@ -99,6 +85,20 @@ intensity_threshold = 0
 
 user_info = None
 
+# -------------------------------------------------
+# Instantiating MQTT Client subscribe
+broker = "192.168.0.157"
+topic_sub1 = "ESP8266/Photoresister"
+topic_sub2 = "ESP8266/RFID" 
+
+photoresistor_controller = IoTController(broker, topic_sub1)
+photoresistor_controller.start()
+
+rfid_controller = IoTController(broker, topic_sub2)
+rfid_controller.start()
+
+# --------------------------------------------------------------------------
+
 # Initialize the app
 app = Dash(__name__)
 
@@ -111,63 +111,71 @@ app.layout = html.Div( id='layout',
         ]),
         html.Div(className='container', children=[
             
+            # left side of dashboard
             html.Div(className="column-left", children=[
-                # html.Div(className="card-component",children=[
 
-                    html.Div(style={'display':'grid', 'text-align':'left'},children=[
-                       html.Div( style={'text-align':'center'},children=[
-                            html.Img( src='assets/images/pfp.png', className="profile-img"),
-                        ]),
+                html.Div(style={'display':'grid', 'text-align':'left'},children=[
+
+                    # Profile Picture
+                    html.Div( style={'text-align':'center'},children=[
+                        html.Img( src='assets/images/pfp.png', className="profile-img"),
+                    ]),
                         
-                        html.Div(style={'display':'grid', 'gap':'5px'},children=[
+                    html.Div(style={'display':'grid', 'gap':'5px'},children=[
 
-                            html.Div(className='',children=[
-                                # html.Label(f'Name: {userName}'),
-                                html.Label(f'Username', style={}, id='user_name'),
-                                html.Label(f'email@email.com', 
-                                            style={
-                                               'color':'rgb( 213 213 213)',
-                                               'font-size':'12px'
-                                            }, id='user_email'),
-                            ], style={'display':'grid', 'text-align':'center'}),
-                            
-                            html.Div(className='profile-label',children=[
-                                html.Div(children=[
-                                    html.Img( src='assets/images/tempThreshold.png',style={'height':'30px'}),
-                                    
-                                    html.Label(f'Temperature:', style={'margin-left':'5px'}),
-                                    html.Label('0°C', style={'margin-left':'5px'}, id='temp_threshold'),
-                                ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
-                            ]),
-                            html.Div(className='profile-label',children=[
-                                html.Div(children=[
-                                    html.Img( src='assets/images/humidityThreshold.png',style={'height':'30px'}),
-                                    
-                                    html.Label(f'Humidity:', style={'margin-left':'5px'}),
-                                    html.Label('0%', style={'margin-left':'5px'}, id='hum_threshold'),
-                                ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
+                        # User Information
+                        html.Div(className='',children=[
+                            html.Label(f'Username', style={}, id='user_name'),
+                            html.Label(f'email@email.com', 
+                                        style={
+                                            'color':'rgb( 213 213 213)',
+                                            'font-size':'12px'
+                                        }, id='user_email'),
+                        ], style={'display':'grid', 'text-align':'center'}),
+                        
+                        # Temperature Threshold
+                        html.Div(className='profile-label',children=[
+                            html.Div(children=[
+                                html.Img( src='assets/images/tempThreshold.png',style={'height':'30px'}),
                                 
-                            ]),
-                            html.Div(className='profile-label', children=[
-                                html.Div(children=[
-                                    html.Img( src='assets/images/lightThreshold.png',style={'height':'30px'}),
-                                    
-                                    html.Label(f'Light Intensity:', style={'margin-left':'5px'}),
-                                    html.Label('0', style={'margin-left':'5px'}, id='intensity_threshold'),
-                                ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
-                            ]),
+                                html.Label(f'Temperature:', style={'margin-left':'5px'}),
+                                html.Label('0°C', style={'margin-left':'5px'}, id='temp_threshold'),
+                            ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
+                        ]),
 
+                        # Humidity Threshold
+                        html.Div(className='profile-label',children=[
+                            html.Div(children=[
+                                html.Img( src='assets/images/humidityThreshold.png',style={'height':'30px'}),
+                                
+                                html.Label(f'Humidity:', style={'margin-left':'5px'}),
+                                html.Label('0%', style={'margin-left':'5px'}, id='hum_threshold'),
+                            ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
+                            
+                        ]),
 
-                        ])
+                        # Light Intensity Threshold
+                        html.Div(className='profile-label', children=[
+                            html.Div(children=[
+                                html.Img( src='assets/images/lightThreshold.png',style={'height':'30px'}),
+                                
+                                html.Label(f'Light Intensity:', style={'margin-left':'5px'}),
+                                html.Label('0', style={'margin-left':'5px'}, id='intensity_threshold'),
+                            ],style={'display':'flex', 'align-items':'center','margin-left':'10px',}),
+                        ]),
+
                     ])
+                ])
                     
-                # ]),
             ]),
+
+            # right side of dashboard
             html.Div(className='column-right', children=[
 
+                # Top-Right of the dashboard
                 html.Div(className='top-container',children=[
 
-
+                    # Temperature Information
                     html.Div(className="card-component",children=[
 
                         html.H3('Temperature (°C)'),
@@ -180,6 +188,8 @@ app.layout = html.Div( id='layout',
 
                         ),
                     ]),
+
+                    # Humidity Information
                     html.Div(className="card-component", children=[
                         
                         html.H3('Humidity (%)'),
@@ -193,18 +203,17 @@ app.layout = html.Div( id='layout',
 
                         ),
                     ]),
+
+                    # Light Intensity Information
                     html.Div(className="card-component",children=[
                         
-
                         html.Div(style={},children=[
                             html.H3('Light Intensity',),
                         ]),
                         
                         html.Div(className="light-intensity-container",children=[
-
                             
                             html.Div(id="brightness", className="brightness",children=[]),
-                            # html.Img( src='assets/images/brightness.png', className="feature-img"),
                         
                             daq.Slider(
                                 id='light-intensity',
@@ -218,8 +227,7 @@ app.layout = html.Div( id='layout',
                                 targets={
                                     f'{intensity_threshold}': {
                                         "label": "Threshold",
-                                        "color": "#1b1e2b",
-                                        # "color": "rgb(255, 255, 0)",
+                                        "color": "#1b1e2b"
                                     },
                                 },
 
@@ -231,16 +239,23 @@ app.layout = html.Div( id='layout',
                     dcc.Interval(id='refresh', interval=3*1000,n_intervals=0)
                     
                 ]),
+
+                # Bottom-Right of the dashboard
                 html.Div(className="bottom-container", children=[
 
+                    # DC Motor Fan
                     html.Div(className="card-component", children=[
 
                         html.Div(style={'display':'grid', 'grid-template-columns':'auto auto auto', },children=[
                             html.H3('DC Motor Fan:'),
-                            html.Div(style={ 'grid-column': '3', 'padding-top':'20px'},children=[   
-                                # daq.PowerButton( on=False, id='light-switch', className='dark-theme-control', size=35 , color='#faff00'),
-                                daq.BooleanSwitch( on=False, id='fan-switch', className='dark-theme-control', color='#707798'),
-                            ])
+                            # html.Div(style={ 'grid-column': '3', 'padding-top':'20px'},children=[   
+                            #     daq.BooleanSwitch( 
+                            #         on=False, 
+                            #         id='fan-switch', 
+                            #         className='dark-theme-control', 
+                            #         color='#707798'
+                            #     ),
+                            # ])
                         ]),
                        
                         html.Div(children=[
@@ -249,16 +264,22 @@ app.layout = html.Div( id='layout',
                         
                     ]),
 
+                    # LED 
                     html.Div(className="card-component", children=[
 
                         html.Div(style={'display':'grid', 'grid-template-columns':'auto auto auto', },children=[
                             html.H3('LED:'),
-                             #'justify-content': 'center','display': 'flex','align-items': 'center',
                             html.Div(style={ 'grid-column': '3', 'padding-top':'20px'},children=[   
-                                # daq.PowerButton( on=False, id='light-switch', className='dark-theme-control', size=35 , color='#faff00'),
-                                daq.BooleanSwitch(disabled=True, on=False, id='light-switch', className='dark-theme-control', color='#707798'),
+                                daq.BooleanSwitch(
+                                    disabled=True, 
+                                    on=False, 
+                                    id='light-switch', 
+                                    className='dark-theme-control', 
+                                    color='#707798'
+                                ),
                             ])
                         ]),
+
                         html.Div([
                             html.Img( src=img_light_off, id='light-img',  className="feature-img" )
                         ]),
@@ -272,12 +293,7 @@ app.layout = html.Div( id='layout',
 
     ]
 )
-# {
-#     f'{intensity_threshold}': {
-#         "label": "Threshold",
-#         "color": "#1b1e2b",
-#     },
-# },
+
 
 @app.callback(
     [Output('user_email','children'),
@@ -294,7 +310,8 @@ def update_user(n_intervals):
     global temp_threshold
     global intensity_threshold 
 
-    user_info  = topic.getRfid()
+    user_info = rfid_controller.getRfid()
+
     if(user_info):
         userID = user_info['user_id']
         user_name = user_info['user_name']
@@ -334,10 +351,8 @@ def update_user(n_intervals):
 def update_light_intensity(n_intervals):
     
     global lightIntensity
-
     # print('------------------------------Light intensity------------------------------')
-    # lightIntensity = resistor.getLightIntensity()
-    lightIntensity = topic.getLightIntensity()
+    lightIntensity = photoresistor_controller.getLightIntensity()
 
     photo_to_rgb = (lightIntensity/1024) *255
     styleBrightness={'--intensity':f'{20+photo_to_rgb}', '--brightness-value':f'{photo_to_rgb}'}
@@ -359,12 +374,9 @@ def update_LED(value):
     global LED_img
     global intensity_threshold 
 
-    # print(f'LED state: {LED_State}, LED count: {led_count}')
-
     if (value < intensity_threshold and intensity_threshold != 0): 
         t = time.localtime()
         current_time = time.strftime("%H:%M",t) 
-        # current_time = datetime.now()
 
         if(led_count == 0):
             body =f'The Light is ON at {current_time}'
@@ -583,5 +595,5 @@ def getDHT11Data():
 
 # Run the app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
-    # app.run(debug=True)
+    # app.run(host='0.0.0.0', debug=True)
+    app.run(debug=True)

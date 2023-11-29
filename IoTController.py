@@ -62,14 +62,14 @@ class IoTController:
 
     def getLightIntensity(self):
         # print('------------------------------Light intensity------------------------------')
-        print(f'============> Intensity: {self.lightIntensity}')
+        print(f' Intensity: {self.lightIntensity}')
         return self.lightIntensity
         
     def getRfid(self):
         
         user_info = self.user_model.select_user(self.rfid)
         # print(self.rfid) 
-        print(f'============> User Info: {user_info}')
+        print(f' User Info: {user_info}')
         user = None
         if(user_info):
             user = {

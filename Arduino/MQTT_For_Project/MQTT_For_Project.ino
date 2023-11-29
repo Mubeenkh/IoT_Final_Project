@@ -25,7 +25,7 @@ const int ANALOG_READ_PIN = A0;
 
 //const char* ssid ="Muffins Hut";
 //const char* password ="Muffin22";
-//const char* mqtt_server = "172.20.10.2";
+//const char* mqtt_server = "172.20.10.3";
 
 const char* ssid ="Gemstelecom08624";
 const char* password ="479202508624";

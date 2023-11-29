@@ -80,6 +80,7 @@ intensity_threshold = 0
 # -------------------------------------------------
 # Instantiating MQTT Client subscribe
 broker = "192.168.0.157"
+# broker = "172.20.10.3"
 topic_sub1 = "ESP8266/Photoresister"
 topic_sub2 = "ESP8266/RFID" 
 
@@ -293,10 +294,13 @@ def update_user(n_intervals):
     global recipients
     global temp_threshold
     global intensity_threshold 
+    global user_count 
+    global current_user
 
     user_info = rfid_controller.getRfid()
 
     if(user_info):
+
         userID = user_info['user_id']
         user_name = user_info['user_name']
         recipients = user_info['user_email']
@@ -309,8 +313,24 @@ def update_user(n_intervals):
                 "color": "#1b1e2b",
             },
         }
+
+        t = time.localtime()
+        current_time = time.strftime("%H:%M",t)
+        if(user_count == 0):
+            user_count = 1
+            current_user = user_name
+            body = f'{current_user} entered the dashboard at {current_time}'
+            subject = f'User Login {current_time}' 
+            send_email("sds", body, sender, recipients, password, subject)
+            print(f'====> System: {current_user} entered the dashboard at {current_time}')
+
+        if (current_user != user_name):
+            print(f'====> System: {current_user} = {user_name} counter {user_count}')
+            user_count = 0
+
         return recipients, user_name, f'{temp_threshold}°C', f'{hum_threshold}%', intensity_threshold, slider_threshold
     else:
+        user_count = 0
         userID = 'User ID'
         user_name = 'Username'
         recipients = 'email@email.com'

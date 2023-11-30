@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #############################################################################
 # Filename    : IoT_SQLite.py
-# Description :	Manipulating the 'iotdashboard' Database 
+# Description :	Manipulating the 'user_data' Database 
 # Author      : Mubeen Khan
 # modification: 2023/11/11
 ########################################################################

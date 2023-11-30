@@ -79,8 +79,8 @@ intensity_threshold = 0
 
 # -------------------------------------------------
 # Instantiating MQTT Client subscribe
-broker = "192.168.0.157"
-# broker = "172.20.10.3"
+# broker = "192.168.0.157"
+broker = "172.20.10.2"
 topic_sub1 = "ESP8266/Photoresister"
 topic_sub2 = "ESP8266/RFID" 
 
@@ -325,7 +325,7 @@ def update_user(n_intervals):
             print(f'====> System: {current_user} entered the dashboard at {current_time}')
 
         if (current_user != user_name):
-            print(f'====> System: {current_user} = {user_name} counter {user_count}')
+            print(f'====> System: {current_user} != {user_name} counter {user_count}')
             user_count = 0
 
         return recipients, user_name, f'{temp_threshold}°C', f'{hum_threshold}%', intensity_threshold, slider_threshold
